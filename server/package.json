@@ -1,0 +1,17 @@
+{
+  "name": "grocery-mini-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "百货订购小程序后端：菜单、订单、地址、余额",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/seed.js --force"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^2.0.2"
+  }
+}

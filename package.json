@@ -1,0 +1,14 @@
+{
+  "name": "grocery-mini",
+  "private": true,
+  "description": "百货外卖订购小程序（uni-app + Node 后端）",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "server": "npm --prefix server start",
+    "dev:h5": "npm --prefix client run dev:h5",
+    "dev:mp-weixin": "npm --prefix client run dev:mp-weixin",
+    "build:h5": "npm --prefix client run build:h5",
+    "build:mp-weixin": "npm --prefix client run build:mp-weixin",
+    "seed": "npm --prefix server run seed"
+  }
+}

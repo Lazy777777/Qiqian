@@ -1,0 +1,25 @@
+{
+  "name": "鲜邻百货",
+  "appid": "",
+  "description": "百货外卖订购小程序",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "鲜邻百货",
+    "router": { "mode": "hash" }
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true
+  },
+  "uniStatistics": {
+    "enable": false
+  },
+  "vueVersion": "3"
+}
