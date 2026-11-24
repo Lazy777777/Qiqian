@@ -1,0 +1,25 @@
+{
+  "name": "课余时光",
+  "appid": "",
+  "description": "课余时光 · 校园百货外卖订购小程序",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "课余时光",
+    "router": { "mode": "hash" }
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true
+  },
+  "uniStatistics": {
+    "enable": false
+  },
+  "vueVersion": "3"
+}

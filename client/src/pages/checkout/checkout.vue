@@ -1,0 +1,343 @@
+<template>
+  <view class="page">
+    <view class="addr card" @click="pickAddress">
+      <view class="addr-icon">送</view>
+      <view v-if="address" class="addr-main">
+        <view class="addr-label">配送至</view>
+        <view class="addr-detail">{{ address.region }} {{ address.detail }}</view>
+        <view class="addr-contact">{{ address.name }} {{ address.phone }}</view>
+      </view>
+      <view v-else class="addr-main"><view class="addr-detail">＋ 添加收货地址</view></view>
+      <text class="arrow">›</text>
+    </view>
+
+    <view class="goods card">
+      <view class="block-title">商品清单</view>
+      <view v-for="i in items" :key="i.key" class="g-row">
+        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
+        <view class="g-name">{{ lineName(i) }}<text class="muted"> ×{{ i.qty }}</text></view>
+        <text class="g-price">¥{{ money(i.price * i.qty) }}</text>
+      </view>
+      <view class="fee"><text class="muted">商品金额</text><text>¥{{ money(preview.goodsAmount) }}</text></view>
+      <view v-if="preview.discount" class="fee"><text class="muted">会员折扣（{{ preview.vip && preview.vip.name }}）</text><text class="minus">-¥{{ money(preview.discount) }}</text></view>
+      <view class="fee"><text class="muted">配送费</text><text>{{ preview.deliveryFee ? '¥' + money(preview.deliveryFee) : '免配送费' }}</text></view>
+      <view class="fee total"><text>实付</text><text class="price"><text class="sym">¥</text>{{ money(preview.payAmount) }}</text></view>
+    </view>
+
+    <view v-if="preview.shortOfMin > 0" class="min-tip">
+      商品金额满 ¥{{ yuan(preview.minOrderAmount) }} 起送，还差 <text class="strong">¥{{ yuan(preview.shortOfMin) }}</text>，请返回继续选购
+    </view>
+
+    <view class="card remark">
+      <view class="remark-head">
+        <text class="label">订单备注</text>
+        <text v-if="needFlavor" class="remark-warn">有商品需要备注口味</text>
+      </view>
+      <textarea
+        v-model="remark"
+        class="remark-input"
+        maxlength="100"
+        auto-height
+        :placeholder="needFlavor ? '请写明口味，如：六连桶要 2 酸菜牛肉 + 4 金汤肥牛' : '口味、送达时间等要求（选填）'"
+      />
+    </view>
+
+    <view class="pay card">
+      <view class="block-title">支付方式</view>
+      <view class="pay-row" @click="method = 'balance'">
+        <view class="pay-icon vip">V</view>
+        <view class="pay-name">
+          <view>会员余额支付</view>
+          <view class="muted small">可用余额 ¥{{ money(balance) }}<text v-if="balance < preview.payAmount" class="warn"> · 余额不足</text></view>
+        </view>
+        <text v-if="balance < preview.payAmount" class="go-recharge" @click.stop="goVip">去充值</text>
+        <view :class="['radio', method === 'balance' && 'on']" />
+      </view>
+      <view class="pay-row" @click="method = 'wechat'">
+        <view class="pay-icon wx">￥</view>
+        <view class="pay-name">
+          <view>微信支付</view>
+          <view class="muted small">当前为模拟支付，不会真实扣款</view>
+        </view>
+        <view :class="['radio', method === 'wechat' && 'on']" />
+      </view>
+    </view>
+
+    <view style="height: 180rpx" />
+    <view class="bar safe-bottom">
+      <view class="bar-sum">
+        <text class="muted">实付 </text>
+        <text class="price big"><text class="sym">¥</text>{{ money(preview.payAmount) }}</text>
+      </view>
+      <button v-if="preview.shortOfMin > 0" class="btn-black" disabled>还差 ¥{{ yuan(preview.shortOfMin) }} 起送</button>
+      <button v-else class="btn-black" :disabled="submitting" @click="submit">提交订单</button>
+    </view>
+
+    <mock-pay-sheet
+      :show="sheet.show"
+      :amount="sheet.amount"
+      :description="sheet.description"
+      :loading="sheet.loading"
+      @confirm="sheet.onConfirm()"
+      @cancel="sheet.onCancel()"
+    />
+  </view>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
+import { api, imgUrl } from '../../utils/request'
+import { money, yuan, lineName } from '../../utils/format'
+import { usePay } from '../../utils/usePay'
+import { checkedItems, checkoutState, setQty, userState, refreshUser } from '../../store'
+
+const { sheet, payOrder } = usePay()
+const addresses = ref([])
+const preview = ref({ goodsAmount: 0, discount: 0, deliveryFee: 0, payAmount: 0, shortOfMin: 0, minOrderAmount: 0 })
+const remark = ref('')
+const method = ref('balance')
+const submitting = ref(false)
+
+const items = computed(() => checkedItems.value)
+const needFlavor = computed(() => items.value.some((i) => /备注/.test(i.name)))
+const payload = () => items.value.map((i) => ({ productId: i.productId, spec: i.spec, qty: i.qty }))
+const balance = computed(() => (userState.user ? userState.user.balance : 0))
+const address = computed(
+  () => addresses.value.find((a) => a.id === checkoutState.addressId) || addresses.value.find((a) => a.isDefault) || addresses.value[0]
+)
+
+async function loadPreview() {
+  if (!items.value.length) return
+  preview.value = await api.post('/api/orders/preview', { items: payload() })
+}
+
+onShow(async () => {
+  await refreshUser()
+  addresses.value = await api.get('/api/addresses')
+  await loadPreview()
+  if (balance.value < preview.value.payAmount) method.value = 'wechat'
+})
+
+const pickAddress = () => uni.navigateTo({ url: '/pages/address/list?select=1' })
+const goVip = () => uni.navigateTo({ url: '/pages/vip/vip' })
+
+async function submit() {
+  if (submitting.value) return
+  if (preview.value.shortOfMin > 0) return uni.showToast({ title: `还差 ¥${yuan(preview.value.shortOfMin)} 起送`, icon: 'none' })
+  if (!address.value) return uni.showToast({ title: '请添加收货地址', icon: 'none' })
+  if (needFlavor.value && !remark.value.trim()) return uni.showToast({ title: '请在订单备注里写明口味', icon: 'none' })
+  if (method.value === 'balance' && balance.value < preview.value.payAmount) {
+    return uni.showToast({ title: '余额不足，请充值或选择微信支付', icon: 'none' })
+  }
+  submitting.value = true
+  try {
+    const order = await api.post('/api/orders', {
+      items: payload(),
+      addressId: address.value.id,
+      remark: remark.value
+    })
+    items.value.map((i) => i.key).forEach((k) => setQty(k, 0))
+    let paid = false
+    try {
+      paid = await payOrder(order.id, method.value)
+    } catch (e) {}
+    uni.redirectTo({ url: `/pages/order/detail?id=${order.id}${paid ? '&paid=1' : ''}` })
+  } finally {
+    submitting.value = false
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.page {
+  padding: 20rpx 28rpx;
+}
+.card {
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+.addr {
+  display: flex;
+  align-items: center;
+}
+.addr-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: $mint-light;
+  color: $mint;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+.addr-main {
+  flex: 1;
+}
+.addr-label {
+  font-size: 22rpx;
+  color: $mint;
+  font-weight: 600;
+  margin-bottom: 4rpx;
+}
+.addr-detail {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+.addr-contact {
+  margin-top: 10rpx;
+  color: $ink-2;
+  font-size: 26rpx;
+}
+.arrow {
+  font-size: 44rpx;
+  color: $ink-3;
+}
+.label {
+  font-weight: 600;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  width: 130rpx;
+}
+.input {
+  flex: 1;
+  font-size: 28rpx;
+}
+.block-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 16rpx;
+}
+.g-row {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+}
+.g-img {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+}
+.g-name {
+  flex: 1;
+  margin: 0 20rpx;
+  font-size: 26rpx;
+}
+.g-price {
+  font-weight: 600;
+}
+.fee {
+  display: flex;
+  justify-content: space-between;
+  font-size: 26rpx;
+  padding-top: 16rpx;
+  .minus {
+    color: $danger;
+  }
+  &.total {
+    margin-top: 12rpx;
+    padding-top: 20rpx;
+    border-top: 1rpx dashed #dfe6ea;
+    font-weight: 700;
+    .price {
+      font-size: 36rpx;
+    }
+  }
+}
+.remark-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+.remark-warn {
+  font-size: 22rpx;
+  color: $primary-dark;
+}
+.remark-input {
+  width: 100%;
+  min-height: 80rpx;
+  font-size: 28rpx;
+}
+.min-tip {
+  margin-bottom: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: $primary-light;
+  font-size: 24rpx;
+  color: $ink-2;
+  .strong {
+    color: $primary-dark;
+    font-weight: 700;
+  }
+}
+.pay-row {
+  display: flex;
+  align-items: center;
+  padding: 18rpx 0;
+}
+.pay-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
+  color: #fff;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  &.vip {
+    background: $primary;
+  }
+  &.wx {
+    background: #07c160;
+  }
+}
+.pay-name {
+  flex: 1;
+  margin-left: 20rpx;
+  font-size: 28rpx;
+  .small {
+    font-size: 22rpx;
+    margin-top: 4rpx;
+  }
+  .warn {
+    color: $danger;
+  }
+}
+.go-recharge {
+  font-size: 24rpx;
+  color: $accent-dark;
+  margin-right: 20rpx;
+  text-decoration: underline;
+}
+.radio {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #c5cdd5;
+  &.on {
+    border: 12rpx solid $primary;
+  }
+}
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: $card;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  border-radius: 36rpx 36rpx 0 0;
+  box-shadow: 0 -8rpx 30rpx rgba(31, 42, 55, 0.06);
+}
+.bar-sum {
+  flex: 1;
+  .big {
+    font-size: 44rpx;
+  }
+}
+</style>

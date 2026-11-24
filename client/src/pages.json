@@ -1,0 +1,40 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationStyle": "custom", "navigationBarTitleText": "首页" } },
+    { "path": "pages/menu/menu", "style": { "navigationBarTitleText": "选购" } },
+    { "path": "pages/cart/cart", "style": { "navigationBarTitleText": "购物车" } },
+    { "path": "pages/order/list", "style": { "navigationBarTitleText": "我的订单", "enablePullDownRefresh": true } },
+    { "path": "pages/mine/mine", "style": { "navigationStyle": "custom", "navigationBarTitleText": "我的" } },
+    { "path": "pages/checkout/checkout", "style": { "navigationBarTitleText": "确认订单" } },
+    { "path": "pages/order/detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/address/list", "style": { "navigationBarTitleText": "收货地址" } },
+    { "path": "pages/address/edit", "style": { "navigationBarTitleText": "编辑地址" } },
+    { "path": "pages/vip/vip", "style": { "navigationBarTitleText": "会员卡" } },
+    { "path": "pages/merchant/login", "style": { "navigationBarTitleText": "商家登录" } },
+    { "path": "pages/merchant/orders", "style": { "navigationBarTitleText": "商家后台 · 订单", "enablePullDownRefresh": true } },
+    { "path": "pages/merchant/order-detail", "style": { "navigationBarTitleText": "订单详情" } },
+    { "path": "pages/merchant/products", "style": { "navigationBarTitleText": "商品管理" } },
+    { "path": "pages/merchant/product-edit", "style": { "navigationBarTitleText": "编辑商品" } },
+    { "path": "pages/merchant/settings", "style": { "navigationBarTitleText": "店铺设置" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "课余时光",
+    "navigationBarBackgroundColor": "#F3F9F7",
+    "backgroundColor": "#F3F9F7",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#9AA5B1",
+    "selectedColor": "#FF7A59",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tab/home.png", "selectedIconPath": "static/tab/home-active.png" },
+      { "pagePath": "pages/menu/menu", "text": "选购", "iconPath": "static/tab/menu.png", "selectedIconPath": "static/tab/menu-active.png" },
+      { "pagePath": "pages/cart/cart", "text": "购物车", "iconPath": "static/tab/cart.png", "selectedIconPath": "static/tab/cart-active.png" },
+      { "pagePath": "pages/order/list", "text": "订单", "iconPath": "static/tab/order.png", "selectedIconPath": "static/tab/order-active.png" },
+      { "pagePath": "pages/mine/mine", "text": "我的", "iconPath": "static/tab/mine.png", "selectedIconPath": "static/tab/mine-active.png" }
+    ]
+  }
+}
