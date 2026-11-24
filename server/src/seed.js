@@ -14,11 +14,13 @@ const categories = [
   { id: 'c_care', name: '女性护理', sort: 5 }
 ]
 
-// 价格单位：分。pack 为整件内的件数和单包单位，可拆的单包价按 ruleSinglePrice 计算
+// 价格单位：分。pack 为整件内的件数和单包单位；单包价默认按 ruleSinglePrice 计算，singlePrice 为店主确认过的定价
+// 缺牙齿素毛肚的件数从截图看不全，先按 20 包填，可在商家端修改
 const products = [
   {
     id: 'p_bucket6', categoryId: 'c_noodle', name: '大桶六连桶（备注口味）', price: 2990, unit: '组',
-    desc: '杨掌柜大桶面 6 桶 · 冲泡即享 多种口味', detail: '下单时请在订单备注里写明想要的口味。', image: 'yangzhanggui-bucket.jpg'
+    desc: '杨掌柜大桶面 6 桶 · 冲泡即享 多种口味', detail: '下单时请在订单备注里写明想要的口味。', image: 'yangzhanggui-bucket.jpg',
+    pack: [6, '桶'], singlePrice: 500
   },
   {
     id: 'p_suancai', categoryId: 'c_noodle', name: '大桶杨掌柜酸菜牛肉味（单点不送）', price: 500, originalPrice: 590, unit: '桶',
@@ -30,7 +32,7 @@ const products = [
   },
   {
     id: 'p_maodu', categoryId: 'c_snack', name: '一把鼻涕一把泪缺牙齿素毛肚', price: 1580, unit: '盒',
-    desc: '缺牙齿 · 湖南特产 麻辣素毛肚', image: 'queyachi-maodu.jpg'
+    desc: '缺牙齿 · 湖南特产 麻辣素毛肚', image: 'queyachi-maodu.jpg', pack: [20, '包'], singlePrice: 100
   },
   {
     id: 'p_yazhua', categoryId: 'c_snack', name: '客家功夫鸭爪3重口味5个（单不）', price: 990, unit: '组',
@@ -58,7 +60,7 @@ const products = [
   },
   {
     id: 'p_nongfu12', categoryId: 'c_drink', name: '农夫山泉1.5升大水12瓶', price: 3300, unit: '箱',
-    desc: '农夫山泉饮用天然水 1.5L×12瓶', image: 'nongfu-1-5l-12.jpg'
+    desc: '农夫山泉饮用天然水 1.5L×12瓶', image: 'nongfu-1-5l-12.jpg', pack: [12, '瓶'], singlePrice: 300
   },
   {
     id: 'p_nongfu24', categoryId: 'c_drink', name: 'Nongfu Spring24瓶', price: 1700, unit: '箱',
@@ -121,7 +123,7 @@ function seed({ force = false } = {}) {
       image: `/uploads/${p.image}`,
       packCount,
       singleUnit,
-      singlePrice: p.pack ? ruleSinglePrice(p.price, packCount) : null,
+      singlePrice: p.pack ? p.singlePrice || ruleSinglePrice(p.price, packCount) : null,
       looseStock: 0,
       stock: p.stock ?? 99,
       onSale: true,
