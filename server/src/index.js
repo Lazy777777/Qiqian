@@ -7,6 +7,7 @@ const multer = require('multer')
 const store = require('./db')
 const { seed } = require('./seed')
 const payment = require('./payment')
+const specs = require('./specs')
 
 const PORT = Number(process.env.PORT || 3000)
 const MERCHANT_PASSWORD = process.env.MERCHANT_PASSWORD || 'admin123'
@@ -17,6 +18,7 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true })
 
 const DELIVERY_FEE = 300
 const FREE_DELIVERY_THRESHOLD = 3900
+const DEFAULT_MIN_ORDER = 1500
 const RECHARGE_PLANS = [
   { amount: 5000, bonus: 0 },
   { amount: 10000, bonus: 1000 },
@@ -72,6 +74,9 @@ function orderNo() {
   const s = d.toISOString().replace(/\D/g, '').slice(0, 14)
   return s + String(Math.floor(Math.random() * 10000)).padStart(4, '0')
 }
+function settings() {
+  return { minOrderAmount: DEFAULT_MIN_ORDER, ...store.db.settings }
+}
 function decorate(order) {
   return { ...order, statusText: ORDER_STATUS[order.status] }
 }
@@ -105,7 +110,7 @@ app.post('/api/user/login', wrap((req) => {
     user = {
       id: store.id('u_'),
       deviceId,
-      nickname: nickname || '百货会员' + String(store.db.users.length + 1).padStart(3, '0'),
+      nickname: nickname || '课余会员' + String(store.db.users.length + 1).padStart(3, '0'),
       balance: 0,
       points: 0,
       totalRecharge: 0,
@@ -125,17 +130,22 @@ app.get('/api/user/balance-logs', wrap((req) => {
 }))
 
 // ---------- 菜单 ----------
+function withSpecs(p) {
+  return { ...p, specs: specs.specsOf(p), singleAvailable: specs.isSplittable(p) ? specs.singleAvailable(p) : 0 }
+}
+
 app.get('/api/menu', wrap(() => {
   const { categories, products } = store.db
   return {
     categories: [...categories].sort((a, b) => a.sort - b.sort),
-    products: products.filter((p) => p.onSale)
+    products: products.filter((p) => p.onSale).map(withSpecs)
   }
 }))
 
 app.get('/api/config', wrap(() => ({
   deliveryFee: DELIVERY_FEE,
   freeDeliveryThreshold: FREE_DELIVERY_THRESHOLD,
+  minOrderAmount: settings().minOrderAmount,
   rechargePlans: RECHARGE_PLANS,
   vipLevels: VIP_LEVELS,
   payMode: payment.PAY_MODE
@@ -205,19 +215,35 @@ app.delete('/api/addresses/:id', wrap((req) => {
 // ---------- 订单 ----------
 function priceOrder(user, items) {
   const { products } = store.db
-  const lines = (items || []).map(({ productId, qty }) => {
+  const byProduct = {}
+  const lines = (items || []).map(({ productId, spec, qty }) => {
     const p = products.find((x) => x.id === productId)
     if (!p || !p.onSale) throw new HttpError(400, '部分商品已下架，请刷新后重试')
+    const sp = specs.specOf(p, spec)
+    if (!sp) throw new HttpError(400, `${p.name} 的规格已调整，请重新选择`)
     const n = Math.max(1, Math.floor(Number(qty) || 0))
-    if (n > p.stock) throw new HttpError(400, `${p.name} 库存不足`)
-    return { productId: p.id, name: p.name, price: p.price, unit: p.unit, image: p.image, qty: n }
+    const agg = (byProduct[p.id] = byProduct[p.id] || { p, whole: 0, single: 0 })
+    agg[sp.id] += n
+    return { productId: p.id, spec: sp.id, specName: sp.name, name: p.name, price: sp.price, unit: sp.unit, image: p.image, qty: n }
   })
   if (!lines.length) throw new HttpError(400, '购物车是空的')
+  for (const { p, whole, single } of Object.values(byProduct)) {
+    if (!specs.checkStock(p, whole, single)) throw new HttpError(400, `${p.name} 库存不足`)
+  }
   const vip = vipOf(user)
   const goodsAmount = lines.reduce((s, l) => s + l.price * l.qty, 0)
+  const { minOrderAmount } = settings()
   const discount = Math.round(goodsAmount * (1 - vip.discount))
   const deliveryFee = vip.freeDelivery || goodsAmount >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
-  return { lines, goodsAmount, discount, deliveryFee, payAmount: goodsAmount - discount + deliveryFee }
+  return {
+    lines,
+    goodsAmount,
+    discount,
+    deliveryFee,
+    payAmount: goodsAmount - discount + deliveryFee,
+    minOrderAmount,
+    shortOfMin: Math.max(0, minOrderAmount - goodsAmount)
+  }
 }
 
 app.post('/api/orders/preview', wrap((req) => {
@@ -230,6 +256,9 @@ app.post('/api/orders', wrap((req) => {
   const user = requireUser(req)
   const { items, addressId, remark } = req.body || {}
   const priced = priceOrder(user, items)
+  if (priced.shortOfMin > 0) {
+    throw new HttpError(400, `商品金额满 ¥${priced.minOrderAmount / 100} 起送，还差 ¥${(priced.shortOfMin / 100).toFixed(2)}`)
+  }
   const a = store.db.addresses.find((x) => x.id === addressId && x.userId === user.id)
   if (!a) throw new HttpError(400, '请选择收货地址')
   const address = { name: a.name, phone: a.phone, region: a.region, detail: a.detail }
@@ -283,7 +312,7 @@ function markOrderPaid(order, method) {
   for (const l of order.items) {
     const p = store.db.products.find((x) => x.id === l.productId)
     if (p) {
-      p.stock = Math.max(0, p.stock - l.qty)
+      specs.consume(p, l.spec, l.qty)
       p.sales += l.qty
     }
   }
@@ -473,7 +502,7 @@ app.post('/api/merchant/orders/:id/refund', wrap((req) => {
   user.points = Math.max(0, user.points - Math.floor(o.payAmount / 100))
   for (const l of o.items) {
     const p = store.db.products.find((x) => x.id === l.productId)
-    if (p) p.stock += l.qty
+    if (p) specs.restore(p, l.spec, l.qty)
   }
   o.refundReason = String((req.body || {}).reason || '商家退款').slice(0, 100)
   o.refundedAt = Date.now()
@@ -486,8 +515,18 @@ app.post('/api/merchant/orders/:id/refund', wrap((req) => {
 // 商品管理
 app.get('/api/merchant/products', wrap(() => ({
   categories: [...store.db.categories].sort((a, b) => a.sort - b.sort),
-  products: store.db.products
+  products: store.db.products.map(withSpecs)
 })))
+
+app.get('/api/merchant/settings', wrap(() => settings()))
+
+app.put('/api/merchant/settings', wrap((req) => {
+  const min = Math.round(Number((req.body || {}).minOrderAmount))
+  if (!Number.isFinite(min) || min < 0) throw new HttpError(400, '请填写正确的起送金额')
+  store.db.settings = { ...store.db.settings, minOrderAmount: min }
+  store.save()
+  return settings()
+}))
 
 function validProduct(body) {
   const name = String(body.name || '').trim()
@@ -496,10 +535,23 @@ function validProduct(body) {
   if (!Number.isFinite(price) || price <= 0) throw new HttpError(400, '请填写正确的价格')
   if (!store.db.categories.some((c) => c.id === body.categoryId)) throw new HttpError(400, '请选择分类')
   const originalPrice = body.originalPrice ? Math.round(Number(body.originalPrice)) : null
+  const packCount = Math.max(0, Math.floor(Number(body.packCount) || 0))
+  let singlePrice = null
+  if (packCount > 1 && body.singlePrice) {
+    singlePrice = Math.round(Number(body.singlePrice))
+    if (!Number.isFinite(singlePrice) || singlePrice <= 0) throw new HttpError(400, '请填写正确的单包价')
+  } else if (body.singlePrice && packCount <= 1) {
+    throw new HttpError(400, '拆包销售需填写整件内的件数（至少 2）')
+  }
   return {
     name,
     categoryId: body.categoryId,
     desc: String(body.desc || '').trim(),
+    detail: String(body.detail || '').trim().slice(0, 500),
+    packCount: singlePrice ? packCount : 0,
+    singlePrice,
+    singleUnit: String(body.singleUnit || '包').trim().slice(0, 2) || '包',
+    looseStock: singlePrice ? Math.max(0, Math.floor(Number(body.looseStock) || 0)) : 0,
     price,
     originalPrice: originalPrice && originalPrice > price ? originalPrice : null,
     unit: String(body.unit || '份').trim() || '份',
@@ -513,7 +565,7 @@ app.post('/api/merchant/products', wrap((req) => {
   const p = { id: store.id('p_'), ...validProduct(req.body || {}), sales: 0, createdAt: Date.now() }
   store.db.products.unshift(p)
   store.save()
-  return p
+  return withSpecs(p)
 }))
 
 app.put('/api/merchant/products/:id', wrap((req) => {
@@ -521,7 +573,7 @@ app.put('/api/merchant/products/:id', wrap((req) => {
   if (!p) throw new HttpError(404, '商品不存在')
   Object.assign(p, validProduct({ ...p, ...req.body }))
   store.save()
-  return p
+  return withSpecs(p)
 }))
 
 app.delete('/api/merchant/products/:id', wrap((req) => {
@@ -575,6 +627,6 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`百货小程序后端已启动：http://localhost:${PORT}`)
+  console.log(`课余时光小程序后端已启动：http://localhost:${PORT}`)
   console.log(`商家后台密码：${MERCHANT_PASSWORD === 'admin123' ? 'admin123（默认，可用 MERCHANT_PASSWORD 修改）' : '已通过环境变量设置'}`)
 })

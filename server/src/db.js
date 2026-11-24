@@ -14,7 +14,8 @@ const EMPTY = {
   recharges: [],
   balanceLogs: [],
   payments: [],
-  merchantSessions: []
+  merchantSessions: [],
+  settings: {}
 }
 
 let state = null

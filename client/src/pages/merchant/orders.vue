@@ -6,7 +6,8 @@
         <view class="h-sub">{{ store.name }} · 商家后台</view>
       </view>
       <view class="h-actions">
-        <view class="btn-black small light" @click="goProducts">商品管理</view>
+        <view class="btn-black small light" @click="goProducts">商品</view>
+        <view class="btn-black small light" @click="goSettings">设置</view>
         <view class="btn-black small ghost" @click="logout">退出</view>
       </view>
     </view>
@@ -48,7 +49,7 @@
         <view class="o-no">订单号 {{ o.orderNo }} · {{ shortTime(o.paidAt) }}</view>
 
         <view class="o-items">
-          <text v-for="i in o.items" :key="i.productId" class="o-item">{{ i.name }} ×{{ i.qty }}</text>
+          <text v-for="(i, k) in o.items" :key="k" class="o-item">{{ lineName(i) }} ×{{ i.qty }}</text>
         </view>
         <view v-if="o.remark" class="o-remark">备注：{{ o.remark }}</view>
 
@@ -79,7 +80,7 @@ import { ref, computed } from 'vue'
 import { onShow, onHide, onUnload, onPullDownRefresh } from '@dcloudio/uni-app'
 import { STORE } from '../../config'
 import { api, getMerchantToken, setMerchantToken } from '../../utils/request'
-import { money, yuan, shortTime, STATUS } from '../../utils/format'
+import { money, yuan, shortTime, STATUS, lineName } from '../../utils/format'
 import { nextAction, canRefund, updateStatus, refundOrder } from '../../utils/merchant'
 
 const store = STORE
@@ -129,6 +130,7 @@ function switchTab(k) {
 }
 const open = (o) => uni.navigateTo({ url: `/pages/merchant/order-detail?id=${o.id}` })
 const goProducts = () => uni.navigateTo({ url: '/pages/merchant/products' })
+const goSettings = () => uni.navigateTo({ url: '/pages/merchant/settings' })
 
 async function advance(o) {
   const a = nextAction(o)

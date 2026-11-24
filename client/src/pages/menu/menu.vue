@@ -22,19 +22,29 @@
 
       <scroll-view scroll-y class="main" :scroll-top="scrollTop">
         <view class="cat-title">{{ activeName }}</view>
-        <view v-for="p in list" :key="p.id" class="item card">
-          <image class="img" :src="imgUrl(p.image)" mode="aspectFit" />
+        <view v-for="p in list" :key="p.id" :class="['item card', soldOut(p) && 'off']" @click="sheetProduct = p">
+          <view class="img-wrap">
+            <image class="img" :src="imgUrl(p.image)" mode="aspectFill" />
+            <text v-if="soldOut(p)" class="img-mask">已售罄</text>
+          </view>
           <view class="info">
             <view class="name">{{ p.name }}</view>
             <view class="desc">{{ p.desc }}</view>
-            <view class="sales">月售 {{ p.sales }} · 库存 {{ p.stock }}</view>
+            <view class="tags">
+              <text v-if="discountText(p)" class="tag-off">{{ discountText(p) }}</text>
+              <text v-if="p.specs.length" class="tag-split">可拆 ¥{{ yuan(p.singlePrice) }}/{{ p.singleUnit }}</text>
+              <text v-if="p.sales" class="sales">月售 {{ p.sales }}</text>
+            </view>
             <view class="foot">
               <view>
                 <text class="price"><text class="sym">¥</text>{{ yuan(p.price) }}</text>
                 <text class="unit">/{{ p.unit }}</text>
                 <text v-if="p.originalPrice" class="origin">¥{{ yuan(p.originalPrice) }}</text>
               </view>
-              <text v-if="p.stock <= 0" class="sold-out">已售罄</text>
+              <text v-if="soldOut(p)" class="sold-out">已售罄</text>
+              <view v-else-if="p.specs.length" class="spec-btn" @click.stop="sheetProduct = p">
+                选规格<text v-if="qtyOf(p.id)" class="spec-num">{{ qtyOf(p.id) }}</text>
+              </view>
               <qty-stepper v-else :value="qtyOf(p.id)" @change="(d) => change(p, d)" />
             </view>
           </view>
@@ -55,8 +65,11 @@
           <view class="bar-tip">{{ deliveryTip }}</view>
         </view>
       </view>
-      <view class="bar-btn" @click="checkout">去结算</view>
+      <view v-if="shortOfMin > 0" class="bar-btn disabled">差 ¥{{ yuan(shortOfMin) }} 起送</view>
+      <view v-else class="bar-btn" @click="checkout">去结算</view>
     </view>
+
+    <product-sheet :product="sheetProduct" @close="sheetProduct = null" />
   </view>
 </template>
 
@@ -64,14 +77,18 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { api, imgUrl } from '../../utils/request'
-import { yuan, money } from '../../utils/format'
-import { cart, menuState, cartCount, cartTotal, qtyOf, addToCart, syncCartWithMenu, userState, loadConfig, ensureLogin } from '../../store'
+import { yuan, money, discountText } from '../../utils/format'
+import {
+  cart, menuState, cartCount, cartTotal, shortOfMin, qtyOf, canAdd, addToCart, syncCartWithMenu, userState, loadConfig, ensureLogin
+} from '../../store'
 
 const categories = ref([])
 const products = ref([])
 const active = ref('')
 const loaded = ref(false)
 const scrollTop = ref(0)
+const sheetProduct = ref(null)
+const soldOut = (p) => p.stock <= 0 && !(p.looseStock > 0)
 
 const list = computed(() => products.value.filter((p) => p.categoryId === active.value))
 const activeName = computed(() => (categories.value.find((c) => c.id === active.value) || {}).name || '')
@@ -87,11 +104,12 @@ const catCount = computed(() => {
 const notice = computed(() => {
   const cfg = userState.config
   if (!cfg) return '外卖配送，最快 30 分钟送到宿舍楼下'
-  return `满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费 · 银卡会员全场包邮`
+  return `满 ¥${yuan(cfg.minOrderAmount)} 起送 · 满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费`
 })
 const deliveryTip = computed(() => {
   const cfg = userState.config
   if (!cfg) return ''
+  if (shortOfMin.value > 0) return `满 ¥${yuan(cfg.minOrderAmount)} 起送`
   const gap = cfg.freeDeliveryThreshold - cartTotal.value
   return gap > 0 ? `再买 ¥${yuan(gap)} 免配送费` : '已免配送费'
 })
@@ -111,13 +129,14 @@ onShow(async () => {
 })
 
 function change(p, d) {
-  if (d > 0 && qtyOf(p.id) >= p.stock) return uni.showToast({ title: '库存不足', icon: 'none' })
+  if (d > 0 && !canAdd(p)) return uni.showToast({ title: '库存不足', icon: 'none' })
   addToCart(p, d)
 }
 const toCart = () => uni.switchTab({ url: '/pages/cart/cart' })
 async function checkout() {
   await ensureLogin()
   if (!cart.items.some((i) => i.checked)) return uni.showToast({ title: '请在购物车勾选商品', icon: 'none' })
+  if (shortOfMin.value > 0) return uni.showToast({ title: `还差 ¥${yuan(shortOfMin.value)} 起送`, icon: 'none' })
   uni.navigateTo({ url: '/pages/checkout/checkout' })
 }
 </script>
@@ -212,12 +231,33 @@ async function checkout() {
   margin-bottom: 18rpx;
   border-radius: $radius;
 }
+.item.off {
+  opacity: 0.7;
+}
+.img-wrap {
+  position: relative;
+  width: 172rpx;
+  height: 172rpx;
+  flex-shrink: 0;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: $card-2;
+}
 .img {
   width: 172rpx;
   height: 172rpx;
-  border-radius: 20rpx;
-  flex-shrink: 0;
-  background: $card-2;
+}
+.img-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #fff;
+  background: rgba(31, 42, 55, 0.55);
 }
 .info {
   flex: 1;
@@ -227,18 +267,68 @@ async function checkout() {
   flex-direction: column;
 }
 .name {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .desc {
   margin-top: 6rpx;
   font-size: 22rpx;
   color: $ink-2;
 }
-.sales {
-  margin-top: 6rpx;
+.tags {
+  margin-top: 8rpx;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8rpx;
   font-size: 20rpx;
+}
+.tag-off {
+  color: $primary-dark;
+  border: 1rpx solid $primary;
+  border-radius: 6rpx;
+  padding: 0 6rpx;
+}
+.tag-split {
+  color: #fff;
+  background: $mint;
+  border-radius: 6rpx;
+  padding: 2rpx 8rpx;
+}
+.sales {
   color: $ink-3;
+}
+.foot {
+  padding-top: 10rpx;
+}
+.spec-btn {
+  position: relative;
+  height: 52rpx;
+  line-height: 52rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: $primary;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+.spec-num {
+  position: absolute;
+  top: -14rpx;
+  right: -10rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 999rpx;
+  background: $mint;
+  font-size: 20rpx;
+  text-align: center;
 }
 .foot {
   margin-top: auto;
@@ -329,5 +419,11 @@ async function checkout() {
   color: $ink;
   font-weight: 700;
   font-size: 30rpx;
+  &.disabled {
+    padding: 0 32rpx;
+    font-size: 26rpx;
+    background: rgba(255, 255, 255, 0.55);
+    color: $ink-2;
+  }
 }
 </style>

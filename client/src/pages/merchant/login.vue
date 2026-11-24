@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <image class="illus" src="/static/illus/noodle.png" mode="aspectFit" />
+    <image class="illus" :src="store.logo" mode="aspectFit" />
     <view class="title">MERCHANT</view>
     <view class="sub">{{ store.name }} · 商家后台</view>
     <view class="form card">
@@ -48,8 +48,8 @@ const back = () => uni.switchTab({ url: '/pages/index/index' })
   align-items: center;
 }
 .illus {
-  width: 200rpx;
-  height: 200rpx;
+  width: 240rpx;
+  height: 232rpx;
 }
 .title {
   margin-top: 20rpx;

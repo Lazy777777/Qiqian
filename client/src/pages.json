@@ -14,11 +14,12 @@
     { "path": "pages/merchant/orders", "style": { "navigationBarTitleText": "商家后台 · 订单", "enablePullDownRefresh": true } },
     { "path": "pages/merchant/order-detail", "style": { "navigationBarTitleText": "订单详情" } },
     { "path": "pages/merchant/products", "style": { "navigationBarTitleText": "商品管理" } },
-    { "path": "pages/merchant/product-edit", "style": { "navigationBarTitleText": "编辑商品" } }
+    { "path": "pages/merchant/product-edit", "style": { "navigationBarTitleText": "编辑商品" } },
+    { "path": "pages/merchant/settings", "style": { "navigationBarTitleText": "店铺设置" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "鲜邻百货",
+    "navigationBarTitleText": "课余时光",
     "navigationBarBackgroundColor": "#F3F9F7",
     "backgroundColor": "#F3F9F7",
     "backgroundTextStyle": "dark"

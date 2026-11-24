@@ -13,9 +13,9 @@
 
     <view class="goods card">
       <view class="block-title">商品清单</view>
-      <view v-for="i in items" :key="i.productId" class="g-row">
+      <view v-for="i in items" :key="i.key" class="g-row">
         <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
-        <view class="g-name">{{ i.name }}<text class="muted"> ×{{ i.qty }}</text></view>
+        <view class="g-name">{{ lineName(i) }}<text class="muted"> ×{{ i.qty }}</text></view>
         <text class="g-price">¥{{ money(i.price * i.qty) }}</text>
       </view>
       <view class="fee"><text class="muted">商品金额</text><text>¥{{ money(preview.goodsAmount) }}</text></view>
@@ -24,9 +24,22 @@
       <view class="fee total"><text>实付</text><text class="price"><text class="sym">¥</text>{{ money(preview.payAmount) }}</text></view>
     </view>
 
+    <view v-if="preview.shortOfMin > 0" class="min-tip">
+      商品金额满 ¥{{ yuan(preview.minOrderAmount) }} 起送，还差 <text class="strong">¥{{ yuan(preview.shortOfMin) }}</text>，请返回继续选购
+    </view>
+
     <view class="card remark">
-      <text class="label">订单备注</text>
-      <input v-model="remark" class="input" maxlength="100" placeholder="口味、送达时间等要求（选填）" />
+      <view class="remark-head">
+        <text class="label">订单备注</text>
+        <text v-if="needFlavor" class="remark-warn">有商品需要备注口味</text>
+      </view>
+      <textarea
+        v-model="remark"
+        class="remark-input"
+        maxlength="100"
+        auto-height
+        :placeholder="needFlavor ? '请写明口味，如：六连桶要 2 酸菜牛肉 + 4 金汤肥牛' : '口味、送达时间等要求（选填）'"
+      />
     </view>
 
     <view class="pay card">
@@ -56,7 +69,8 @@
         <text class="muted">实付 </text>
         <text class="price big"><text class="sym">¥</text>{{ money(preview.payAmount) }}</text>
       </view>
-      <button class="btn-black" :disabled="submitting" @click="submit">提交订单</button>
+      <button v-if="preview.shortOfMin > 0" class="btn-black" disabled>还差 ¥{{ yuan(preview.shortOfMin) }} 起送</button>
+      <button v-else class="btn-black" :disabled="submitting" @click="submit">提交订单</button>
     </view>
 
     <mock-pay-sheet
@@ -74,18 +88,20 @@
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { api, imgUrl } from '../../utils/request'
-import { money } from '../../utils/format'
+import { money, yuan, lineName } from '../../utils/format'
 import { usePay } from '../../utils/usePay'
 import { checkedItems, checkoutState, setQty, userState, refreshUser } from '../../store'
 
 const { sheet, payOrder } = usePay()
 const addresses = ref([])
-const preview = ref({ goodsAmount: 0, discount: 0, deliveryFee: 0, payAmount: 0 })
+const preview = ref({ goodsAmount: 0, discount: 0, deliveryFee: 0, payAmount: 0, shortOfMin: 0, minOrderAmount: 0 })
 const remark = ref('')
 const method = ref('balance')
 const submitting = ref(false)
 
 const items = computed(() => checkedItems.value)
+const needFlavor = computed(() => items.value.some((i) => /备注/.test(i.name)))
+const payload = () => items.value.map((i) => ({ productId: i.productId, spec: i.spec, qty: i.qty }))
 const balance = computed(() => (userState.user ? userState.user.balance : 0))
 const address = computed(
   () => addresses.value.find((a) => a.id === checkoutState.addressId) || addresses.value.find((a) => a.isDefault) || addresses.value[0]
@@ -93,9 +109,7 @@ const address = computed(
 
 async function loadPreview() {
   if (!items.value.length) return
-  preview.value = await api.post('/api/orders/preview', {
-    items: items.value.map((i) => ({ productId: i.productId, qty: i.qty }))
-  })
+  preview.value = await api.post('/api/orders/preview', { items: payload() })
 }
 
 onShow(async () => {
@@ -110,18 +124,20 @@ const goVip = () => uni.navigateTo({ url: '/pages/vip/vip' })
 
 async function submit() {
   if (submitting.value) return
+  if (preview.value.shortOfMin > 0) return uni.showToast({ title: `还差 ¥${yuan(preview.value.shortOfMin)} 起送`, icon: 'none' })
   if (!address.value) return uni.showToast({ title: '请添加收货地址', icon: 'none' })
+  if (needFlavor.value && !remark.value.trim()) return uni.showToast({ title: '请在订单备注里写明口味', icon: 'none' })
   if (method.value === 'balance' && balance.value < preview.value.payAmount) {
     return uni.showToast({ title: '余额不足，请充值或选择微信支付', icon: 'none' })
   }
   submitting.value = true
   try {
     const order = await api.post('/api/orders', {
-      items: items.value.map((i) => ({ productId: i.productId, qty: i.qty })),
+      items: payload(),
       addressId: address.value.id,
       remark: remark.value
     })
-    items.value.map((i) => i.productId).forEach((id) => setQty(id, 0))
+    items.value.map((i) => i.key).forEach((k) => setQty(k, 0))
     let paid = false
     try {
       paid = await payOrder(order.id, method.value)
@@ -231,9 +247,32 @@ async function submit() {
     }
   }
 }
-.remark {
+.remark-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+.remark-warn {
+  font-size: 22rpx;
+  color: $primary-dark;
+}
+.remark-input {
+  width: 100%;
+  min-height: 80rpx;
+  font-size: 28rpx;
+}
+.min-tip {
+  margin-bottom: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: $primary-light;
+  font-size: 24rpx;
+  color: $ink-2;
+  .strong {
+    color: $primary-dark;
+    font-weight: 700;
+  }
 }
 .pay-row {
   display: flex;

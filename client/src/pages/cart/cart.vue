@@ -10,20 +10,25 @@
       </view>
 
       <view class="list card">
-        <view v-for="i in cart.items" :key="i.productId" class="row">
-          <view :class="['check', i.checked && 'on']" @click="toggleChecked(i.productId)">
+        <view v-for="i in cart.items" :key="i.key" class="row">
+          <view :class="['check', i.checked && 'on']" @click="toggleChecked(i.key)">
             <text v-if="i.checked">✓</text>
           </view>
           <image class="img" :src="imgUrl(i.image)" mode="aspectFit" />
           <view class="info">
             <view class="name">{{ i.name }}</view>
-            <view class="desc">{{ i.desc }}</view>
+            <view class="desc"><text v-if="i.specName" class="spec">{{ i.specName }}</text>{{ i.desc }}</view>
             <view class="foot">
-              <text class="price"><text class="sym">¥</text>{{ yuan(i.price) }}</text>
-              <qty-stepper :value="i.qty" @change="(d) => setQty(i.productId, i.qty + d)" />
+              <view><text class="price"><text class="sym">¥</text>{{ yuan(i.price) }}</text><text class="unit">/{{ i.unit }}</text></view>
+              <qty-stepper :value="i.qty" @change="(d) => setQty(i.key, i.qty + d)" />
             </view>
           </view>
         </view>
+      </view>
+
+      <view v-if="checkedItems.length && shortOfMin > 0" class="min-tip">
+        <text>商品金额满 ¥{{ yuan(minOrder) }} 起送，还差 <text class="strong">¥{{ yuan(shortOfMin) }}</text></text>
+        <text class="go" @click="goMenu">去凑单 ›</text>
       </view>
 
       <view class="tip card">
@@ -42,6 +47,7 @@
           <text class="price big"><text class="sym">¥</text>{{ money(cartTotal) }}</text>
         </view>
         <view v-if="editing" class="btn-black danger" @click="remove">删除所选</view>
+        <view v-else-if="checkedItems.length && shortOfMin > 0" class="btn-black disabled short">还差 ¥{{ yuan(shortOfMin) }} 起送</view>
         <view v-else :class="['btn-black', !checkedItems.length && 'disabled']" @click="checkout">去结算</view>
       </view>
     </template>
@@ -60,16 +66,17 @@ import { onShow } from '@dcloudio/uni-app'
 import { imgUrl } from '../../utils/request'
 import { yuan, money } from '../../utils/format'
 import {
-  cart, cartCount, cartTotal, checkedItems, setQty, toggleChecked, toggleAll, removeChecked,
+  cart, cartCount, cartTotal, checkedItems, shortOfMin, setQty, toggleChecked, toggleAll, removeChecked,
   syncBadge, userState, loadConfig, ensureLogin
 } from '../../store'
 
 const editing = ref(false)
+const minOrder = computed(() => (userState.config ? userState.config.minOrderAmount : 0))
 const allChecked = computed(() => cart.items.length > 0 && cart.items.every((i) => i.checked))
 const tip = computed(() => {
   const cfg = userState.config
   if (!cfg) return '外卖配送，最快 30 分钟送达'
-  return `配送费 ¥${yuan(cfg.deliveryFee)}，满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费；银卡及以上会员免配送费`
+  return `商品满 ¥${yuan(cfg.minOrderAmount)} 起送；配送费 ¥${yuan(cfg.deliveryFee)}，满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费；银卡及以上会员免配送费`
 })
 
 onShow(() => {
@@ -92,6 +99,7 @@ function remove() {
 }
 async function checkout() {
   if (!checkedItems.value.length) return uni.showToast({ title: '请选择商品', icon: 'none' })
+  if (shortOfMin.value > 0) return uni.showToast({ title: `还差 ¥${yuan(shortOfMin.value)} 起送`, icon: 'none' })
   await ensureLogin()
   uni.navigateTo({ url: '/pages/checkout/checkout' })
 }
@@ -159,18 +167,60 @@ const goMenu = () => uni.switchTab({ url: '/pages/menu/menu' })
   flex: 1;
   min-width: 0;
   margin-left: 20rpx;
-  height: 150rpx;
+  min-height: 150rpx;
   display: flex;
   flex-direction: column;
 }
 .name {
   font-size: 28rpx;
   font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .desc {
   margin-top: 6rpx;
   font-size: 22rpx;
   color: $ink-3;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  .spec {
+    margin-right: 8rpx;
+    padding: 2rpx 10rpx;
+    border-radius: 6rpx;
+    background: $mint-light;
+    color: #1f9e80;
+  }
+}
+.unit {
+  font-size: 22rpx;
+  color: $ink-3;
+}
+.min-tip {
+  margin-top: 20rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 24rpx;
+  background: $primary-light;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 24rpx;
+  color: $ink-2;
+  .strong {
+    color: $primary-dark;
+    font-weight: 700;
+  }
+  .go {
+    color: $primary-dark;
+    font-weight: 600;
+  }
+}
+.short {
+  font-size: 26rpx;
+  padding: 0 28rpx;
 }
 .foot {
   margin-top: auto;

@@ -7,25 +7,28 @@
         <view class="blob blob-coral" />
         <image class="hero-img" src="/static/illus/girl.png" mode="aspectFit" />
       </view>
-      <view class="title">{{ store.title }}</view>
-      <view class="subtitle">{{ store.name }} · {{ store.slogan }}</view>
+      <view class="brand">
+        <image class="logo" :src="store.logo" mode="aspectFit" />
+        <view class="title">{{ store.name }}</view>
+      </view>
+      <view class="subtitle">{{ store.slogan }}</view>
       <view class="btn-black hero-btn" @click="go()">立即点单</view>
     </view>
 
     <view class="tiles">
-      <view class="tile coral" @click="go('c_grain')">
+      <view class="tile coral" @click="go('c_noodle')">
         <image class="tile-img" src="/static/illus/noodle.png" mode="aspectFit" />
         <text class="tile-cn">速食泡面</text>
         <text class="tile-en">Instant Food</text>
       </view>
-      <view class="tile mint" @click="go('c_daily')">
+      <view class="tile mint" @click="go('c_paper')">
         <image class="tile-img" src="/static/illus/tissue.png" mode="aspectFit" />
-        <text class="tile-cn">日用百货</text>
+        <text class="tile-cn">纸品日用</text>
         <text class="tile-en">Daily Goods</text>
       </view>
       <view class="tile blue" @click="go('c_drink')">
         <image class="tile-img" src="/static/illus/water.png" mode="aspectFit" />
-        <text class="tile-cn">饮用水</text>
+        <text class="tile-cn">饮品饮用水</text>
         <text class="tile-en">Drinks</text>
       </view>
     </view>
@@ -57,8 +60,8 @@
       </view>
       <scroll-view scroll-x class="hot-scroll" :show-scrollbar="false">
         <view class="hot-list">
-          <view v-for="p in hot" :key="p.id" class="hot-item card" @click="go(p.categoryId)">
-            <image class="hot-img" :src="imgUrl(p.image)" mode="aspectFit" />
+          <view v-for="p in hot" :key="p.id" class="hot-item card" @click="sheetProduct = p">
+            <image class="hot-img" :src="imgUrl(p.image)" mode="aspectFill" />
             <view class="hot-name">{{ p.name }}</view>
             <view class="hot-foot">
               <text class="price"><text class="sym">¥</text>{{ yuan(p.price) }}</text>
@@ -69,6 +72,7 @@
       </scroll-view>
     </view>
     <view class="foot-space" />
+    <product-sheet :product="sheetProduct" @close="sheetProduct = null" />
   </view>
 </template>
 
@@ -88,7 +92,13 @@ statusBar.value = uni.getSystemInfoSync().statusBarHeight || 20
 
 const user = computed(() => userState.user)
 const products = ref([])
-const hot = computed(() => [...products.value].sort((a, b) => b.sales - a.sales).slice(0, 6))
+const sheetProduct = ref(null)
+const hot = computed(() =>
+  products.value
+    .filter((p) => p.stock > 0)
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 6)
+)
 
 onShow(() => {
   syncBadge()
@@ -102,6 +112,10 @@ function go(category = '') {
 }
 const goVip = () => uni.navigateTo({ url: '/pages/vip/vip' })
 function add(p) {
+  if (p.specs.length) {
+    sheetProduct.value = p
+    return
+  }
   addToCart(p, 1)
   uni.showToast({ title: '已加入购物车', icon: 'none' })
 }
@@ -156,11 +170,20 @@ function add(p) {
   width: 300rpx;
   height: 435rpx;
 }
+.brand {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.logo {
+  width: 148rpx;
+  height: 144rpx;
+}
 .title {
-  margin-top: 20rpx;
   font-size: 68rpx;
   font-weight: 800;
-  letter-spacing: 4rpx;
+  letter-spacing: 8rpx;
   line-height: 1.1;
   color: $ink;
 }

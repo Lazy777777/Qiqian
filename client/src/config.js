@@ -1,7 +1,7 @@
 // 店铺信息：改成自己的店名即可
 export const STORE = {
-  name: '鲜邻百货',
-  title: 'GROCERY STORE',
+  name: '课余时光',
+  logo: '/static/logo.png',
   slogan: '校园外卖 · 30 分钟送到宿舍',
   phone: '400-000-0000',
   address: '本店地址（请在 src/config.js 修改）'

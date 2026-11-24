@@ -1,69 +1,135 @@
 const fs = require('fs')
 const path = require('path')
 const store = require('./db')
-const { productSvg } = require('./illustrations')
+const { ruleSinglePrice } = require('./specs')
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads')
-const ASSET_DIR = path.join(__dirname, '..', 'assets')
+const ASSET_DIR = path.join(__dirname, '..', 'assets', 'products')
 
 const categories = [
-  { id: 'c_fresh', name: '新鲜果蔬', sort: 1 },
-  { id: 'c_dairy', name: '乳品烘焙', sort: 2 },
-  { id: 'c_drink', name: '酒水饮料', sort: 3 },
-  { id: 'c_snack', name: '休闲零食', sort: 4 },
-  { id: 'c_grain', name: '粮油速食', sort: 5 },
-  { id: 'c_daily', name: '日用百货', sort: 6 }
+  { id: 'c_noodle', name: '速食泡面', sort: 1 },
+  { id: 'c_snack', name: '零食卤味', sort: 2 },
+  { id: 'c_drink', name: '饮品与饮用水', sort: 3 },
+  { id: 'c_paper', name: '纸品日用', sort: 4 },
+  { id: 'c_care', name: '女性护理', sort: 5 }
 ]
 
-// 价格单位：分；以 @ 开头的形状直接使用 server/assets 下的插画 PNG
+// 价格单位：分。pack 为整件内的件数和单包单位，可拆的单包价按 ruleSinglePrice 计算
 const products = [
-  ['p_apple', 'c_fresh', '烟台红富士苹果', '脆甜多汁 约1kg', 1690, 1990, '份', 'apple', '#ff7a59'],
-  ['p_veg', 'c_fresh', '有机小青菜', '当日采摘 约500g', 590, 690, '份', 'veg', '#5fd3a8'],
-  ['p_egg', 'c_fresh', '散养土鸡蛋', '10枚装 新鲜直供', 1880, 2280, '盒', 'egg', '#ffc56b'],
-  ['p_milk', 'c_dairy', '纯牛奶', '250ml×12盒 整箱', 4590, 5290, '箱', 'milk', '#8ec9f2'],
-  ['p_yogurt', 'c_dairy', '原味老酸奶', '180g×4杯', 1590, null, '组', 'milk', '#ffb3a1'],
-  ['p_bread', 'c_dairy', '手撕吐司面包', '奶香浓郁 400g', 1290, null, '袋', 'bread', '#ffc56b'],
-  ['p_water', 'c_drink', '桶装饮用水', '4.5L 宿舍必备', 1290, 1590, '桶', '@water', ''],
-  ['p_mineral', 'c_drink', '天然矿泉水', '550ml×24瓶', 2990, 3490, '箱', 'bottle', '#8ec9f2'],
-  ['p_cola', 'c_drink', '可乐汽水', '330ml×6罐', 1590, null, '组', 'bottle', '#ff7a59'],
-  ['p_coffee', 'c_drink', '冷萃美式咖啡', '即饮 270ml', 790, 990, '瓶', 'coffee', '#8ec9f2'],
-  ['p_chips', 'c_snack', '薯片 原味', '大包装 135g', 990, null, '袋', 'snack', '#ffd36b'],
-  ['p_nuts', 'c_snack', '每日坚果', '25g×7袋', 3990, 4590, '盒', 'snack', '#5fd3a8'],
-  ['p_noodle', 'c_grain', '红烧牛肉面', '桶装 5桶', 2290, null, '组', '@noodle', ''],
-  ['p_oil', 'c_grain', '花生油', '物理压榨 1.8L', 3990, 4590, '桶', 'bottle', '#ffc56b'],
-  ['p_tissue', 'c_daily', '抽纸', '3层120抽×6包', 1990, 2490, '提', '@tissue', ''],
-  ['p_bag', 'c_daily', '加厚垃圾袋', '50只×3卷', 990, null, '组', 'tissue', '#a8b3c7']
+  {
+    id: 'p_bucket6', categoryId: 'c_noodle', name: '大桶六连桶（备注口味）', price: 2990, unit: '组',
+    desc: '杨掌柜大桶面 6 桶 · 冲泡即享 多种口味', detail: '下单时请在订单备注里写明想要的口味。', image: 'yangzhanggui-bucket.jpg'
+  },
+  {
+    id: 'p_suancai', categoryId: 'c_noodle', name: '大桶杨掌柜酸菜牛肉味（单点不送）', price: 500, originalPrice: 590, unit: '桶',
+    desc: '杨掌柜大桶 · 酸菜牛肉味', image: 'yangzhanggui-bucket.jpg'
+  },
+  {
+    id: 'p_jintang', categoryId: 'c_noodle', name: '大桶杨掌柜金汤肥牛（单点不送）', price: 500, originalPrice: 590, unit: '桶',
+    desc: '杨掌柜大桶 · 金汤肥牛味', image: 'yangzhanggui-bucket.jpg'
+  },
+  {
+    id: 'p_maodu', categoryId: 'c_snack', name: '一把鼻涕一把泪缺牙齿素毛肚', price: 1580, unit: '盒',
+    desc: '缺牙齿 · 湖南特产 麻辣素毛肚', image: 'queyachi-maodu.jpg'
+  },
+  {
+    id: 'p_yazhua', categoryId: 'c_snack', name: '客家功夫鸭爪3重口味5个（单不）', price: 990, unit: '组',
+    desc: '客家功夫泡鸭爪 · 清香 / 香辣 / 泡椒', image: 'kejia-yazhua.jpg', pack: [5, '个']
+  },
+  {
+    id: 'p_labaicai', categoryId: 'c_snack', name: '咔吡咔吡辣白菜20包', price: 1580, unit: '袋',
+    desc: '辣白菜味调味面制品 · 够麻够辣', image: 'labaicai.jpg', pack: [20, '包']
+  },
+  {
+    id: 'p_yabo', categoryId: 'c_snack', name: '好味屋劲卤鸭脖5根（单点不送）', price: 990, unit: '组',
+    desc: '好味屋劲卤 · 黑鸭味 / 香辣味', image: 'haoweiwu-yabo.jpg', pack: [5, '根']
+  },
+  {
+    id: 'p_doubendou', categoryId: 'c_drink', name: '豆本豆六盒（单点不送）', price: 990, unit: '组',
+    desc: '唯甄原味豆奶 250ml×6盒', image: 'doubendou.jpg', pack: [6, '盒']
+  },
+  {
+    id: 'p_lanbiao', categoryId: 'c_drink', name: '今麦郎蓝标水24瓶', price: 1400, unit: '箱',
+    desc: '蓝标纯净软水 · 24 瓶整箱', image: 'lanbiao-water.jpg', pack: [24, '瓶']
+  },
+  {
+    id: 'p_nongfu', categoryId: 'c_drink', name: '农夫山泉1.5升大水', price: 300, unit: '瓶',
+    desc: '农夫山泉饮用天然水 1.5L', image: 'nongfu-1-5l.jpg'
+  },
+  {
+    id: 'p_nongfu12', categoryId: 'c_drink', name: '农夫山泉1.5升大水12瓶', price: 3300, unit: '箱',
+    desc: '农夫山泉饮用天然水 1.5L×12瓶', image: 'nongfu-1-5l-12.jpg'
+  },
+  {
+    id: 'p_nongfu24', categoryId: 'c_drink', name: 'Nongfu Spring24瓶', price: 1700, unit: '箱',
+    desc: '农夫山泉饮用天然水 24 瓶整箱', image: 'nongfu-24.jpg', pack: [24, '瓶'], stock: 0
+  },
+  {
+    id: 'p_runtian', categoryId: 'c_drink', name: '一件24瓶润田王', price: 1750, unit: '件',
+    desc: '润田饮用水 24 瓶整件', image: 'runtian-24.jpg', pack: [24, '瓶']
+  },
+  {
+    id: 'p_qingfeng', categoryId: 'c_paper', name: '清风大抽纸', price: 990, originalPrice: 1290, unit: '提',
+    desc: '清风丝柔亲肤 · 悬挂式抽纸', image: 'qingfeng-tissue.jpg'
+  },
+  {
+    id: 'p_care_ask', categoryId: 'c_care', name: '3日用+1迷你+1夜用+1安睡裤', price: 4780, unit: '组',
+    desc: '自由点卫生巾组合装', detail: '自由点：3包日用➕一包夜用➕一包迷你➕一包安睡裤', image: 'ziyoudian-anshuiku.jpg'
+  },
+  {
+    id: 'p_care_long', categoryId: 'c_care', name: '3日用+1夜用+1迷你+1加长', price: 4780, unit: '组',
+    desc: '自由点卫生巾组合装', detail: '自由点卫生巾: 三包日用，一包夜用，一包加长，一包迷你', image: 'ziyoudian-la88.jpg'
+  },
+  {
+    id: 'p_anshuiku', categoryId: 'c_care', name: '3片安睡裤M-L码（单点不送）', price: 990, unit: '包',
+    desc: '自由点安睡裤 M-L 码 · 3 片装', image: 'ziyoudian-anshuiku.jpg'
+  },
+  {
+    id: 'p_day240', categoryId: 'c_care', name: '3连包24片240mm日用自由点', price: 2970, unit: '组',
+    desc: '自由点益生菌卫生巾 · 240mm 日用', detail: '三包组合，不能拆开', image: 'ziyoudian-la88.jpg'
+  },
+  {
+    id: 'p_night280', categoryId: 'c_care', name: '8片280夜用（单点不送）', price: 990, unit: '包',
+    desc: '自由点益生菌卫生巾 · 280mm 夜用', image: 'ziyoudian-280.jpg'
+  },
+  {
+    id: 'p_night430', categoryId: 'c_care', name: '4+2片430夜用要（单点不送）', price: 990, unit: '包',
+    desc: '自由点益生菌夜用 · 430mm', image: 'ziyoudian-430.jpg'
+  },
+  {
+    id: 'p_mini190', categoryId: 'c_care', name: '迷你190mm卫生巾（单点不送）', price: 890, unit: '包',
+    desc: '自由点益生菌卫生巾 · 190mm 迷你', image: 'ziyoudian-la88.jpg'
+  }
 ]
 
 function seed({ force = false } = {}) {
   if (!force && fs.existsSync(store.DB_FILE)) return false
   fs.mkdirSync(UPLOAD_DIR, { recursive: true })
   const now = Date.now()
-  const list = products.map(([id, categoryId, name, desc, price, originalPrice, unit, shape, color], i) => {
-    let file
-    if (shape.startsWith('@')) {
-      file = `${id}.png`
-      fs.copyFileSync(path.join(ASSET_DIR, `${shape.slice(1)}.png`), path.join(UPLOAD_DIR, file))
-    } else {
-      file = `${id}.svg`
-      fs.writeFileSync(path.join(UPLOAD_DIR, file), productSvg(shape, color))
-    }
+  const list = products.map((p) => {
+    fs.copyFileSync(path.join(ASSET_DIR, p.image), path.join(UPLOAD_DIR, p.image))
+    const [packCount, singleUnit] = p.pack || [0, '包']
     return {
-      id,
-      categoryId,
-      name,
-      desc,
-      price,
-      originalPrice,
-      unit,
-      image: `/uploads/${file}`,
-      stock: 99,
+      id: p.id,
+      categoryId: p.categoryId,
+      name: p.name,
+      desc: p.desc || '',
+      detail: p.detail || '',
+      price: p.price,
+      originalPrice: p.originalPrice || null,
+      unit: p.unit,
+      image: `/uploads/${p.image}`,
+      packCount,
+      singleUnit,
+      singlePrice: p.pack ? ruleSinglePrice(p.price, packCount) : null,
+      looseStock: 0,
+      stock: p.stock ?? 99,
       onSale: true,
-      sales: 20 + ((i * 37) % 180),
+      sales: 0,
       createdAt: now
     }
   })
-  store.reset({ categories, products: list })
+  store.reset({ categories, products: list, settings: { minOrderAmount: 1500 } })
   return true
 }
 

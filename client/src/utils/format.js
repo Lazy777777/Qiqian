@@ -5,6 +5,18 @@ export const yuan = (fen) => {
 
 export const money = (fen) => ((Number(fen) || 0) / 100).toFixed(2)
 
+// 订单 / 购物车行的显示名：可拆包商品带上规格
+export const lineName = (i) => (i.specName ? `${i.name} · ${i.specName}` : i.name)
+
+export const discountText = (p) =>
+  p.originalPrice && p.originalPrice > p.price ? `${Math.round((p.price / p.originalPrice) * 100) / 10}折` : ''
+
+// 拆包定价规则：整件价 ÷ 件数，不到 1 元按 1 元/包，超过 1 元按 2 元/包（与后端 specs.js 一致）
+export function ruleSinglePrice(price, packCount) {
+  if (!(packCount > 1) || !(price > 0)) return null
+  return price / packCount <= 100 ? 100 : 200
+}
+
 const pad = (n) => String(n).padStart(2, '0')
 export function dateTime(ts) {
   if (!ts) return ''

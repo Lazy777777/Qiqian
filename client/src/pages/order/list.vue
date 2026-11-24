@@ -11,12 +11,12 @@
         <view class="o-head">
           <view>
             <view class="o-type">订单号 {{ o.orderNo }}</view>
-            <view class="o-no">{{ o.items.map((i) => i.name).join('、') }}</view>
+            <view class="o-no">{{ o.items.map(lineName).join('、') }}</view>
           </view>
           <text class="o-status" :style="{ color: STATUS[o.status].color, background: STATUS[o.status].color + '1f' }">{{ o.statusText }}</text>
         </view>
         <view class="o-goods">
-          <image v-for="i in o.items.slice(0, 4)" :key="i.productId" class="o-img" :src="imgUrl(i.image)" mode="aspectFit" />
+          <image v-for="(i, k) in o.items.slice(0, 4)" :key="k" class="o-img" :src="imgUrl(i.image)" mode="aspectFit" />
           <view class="o-count">
             <text class="muted">共 {{ o.items.reduce((s, i) => s + i.qty, 0) }} 件</text>
             <text class="price">¥{{ money(o.payAmount) }}</text>
@@ -42,7 +42,7 @@
 import { ref } from 'vue'
 import { onShow, onPullDownRefresh, onHide } from '@dcloudio/uni-app'
 import { api, imgUrl } from '../../utils/request'
-import { money, shortTime, STATUS } from '../../utils/format'
+import { money, shortTime, STATUS, lineName } from '../../utils/format'
 import { ensureLogin, syncBadge } from '../../store'
 
 const tabs = [

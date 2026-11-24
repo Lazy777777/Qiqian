@@ -36,7 +36,10 @@
     <view class="menu card">
       <view class="m-row" @click="go('/pages/merchant/login')"><text>商家入口</text><text class="muted">店主登录 ›</text></view>
     </view>
-    <view class="ver">{{ store.name }} · v1.0.0</view>
+    <view class="ver">
+      <image class="ver-logo" :src="store.logo" mode="aspectFit" />
+      <view>{{ store.name }} · v1.0.0</view>
+    </view>
   </view>
 </template>
 
@@ -157,5 +160,10 @@ const call = () => uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
   font-size: 22rpx;
   color: $ink-3;
   padding: 40rpx 0;
+}
+.ver-logo {
+  width: 150rpx;
+  height: 146rpx;
+  margin-bottom: 8rpx;
 }
 </style>

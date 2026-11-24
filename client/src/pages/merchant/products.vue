@@ -19,6 +19,9 @@
       <view class="info">
         <view class="name">{{ p.name }}</view>
         <view class="meta">{{ catName(p.categoryId) }} · 库存 {{ p.stock }} · 销量 {{ p.sales }}</view>
+        <view v-if="p.specs && p.specs.length" class="split">
+          可拆包：整件 {{ p.packCount }}{{ p.singleUnit }} · 单{{ p.singleUnit }} ¥{{ money(p.singlePrice) }} · 散包 {{ p.looseStock || 0 }}
+        </view>
         <view class="row">
           <text class="price">¥{{ money(p.price) }}<text class="unit">/{{ p.unit }}</text></text>
           <view class="sale">
@@ -167,6 +170,15 @@ function removeCategory(c) {
   margin-top: 4rpx;
   font-size: 22rpx;
   color: $ink-3;
+}
+.split {
+  margin-top: 6rpx;
+  display: inline-block;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  background: $mint-light;
+  color: #1f9e80;
 }
 .row {
   margin-top: 8rpx;

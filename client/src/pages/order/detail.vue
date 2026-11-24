@@ -28,9 +28,9 @@
 
     <view class="card block">
       <view class="block-title">商品</view>
-      <view v-for="i in order.items" :key="i.productId" class="g-row">
+      <view v-for="(i, k) in order.items" :key="k" class="g-row">
         <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
-        <view class="g-name">{{ i.name }}<text class="muted"> ×{{ i.qty }}</text></view>
+        <view class="g-name">{{ lineName(i) }}<text class="muted"> ×{{ i.qty }}</text></view>
         <text>¥{{ money(i.price * i.qty) }}</text>
       </view>
       <view class="fee"><text class="muted">商品金额</text><text>¥{{ money(order.goodsAmount) }}</text></view>
@@ -74,7 +74,7 @@ import { ref, computed } from 'vue'
 import { onLoad, onShow, onHide, onUnload } from '@dcloudio/uni-app'
 import { STORE } from '../../config'
 import { api, imgUrl } from '../../utils/request'
-import { money, dateTime, STATUS } from '../../utils/format'
+import { money, dateTime, STATUS, lineName } from '../../utils/format'
 import { usePay } from '../../utils/usePay'
 import { addToCart, userState, refreshUser } from '../../store'
 
@@ -145,7 +145,10 @@ function callStore() {
   uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
 }
 function again() {
-  order.value.items.forEach((i) => addToCart({ id: i.productId, name: i.name, price: i.price, unit: i.unit, image: i.image }, i.qty))
+  order.value.items.forEach((i) => {
+    const spec = { id: i.spec || 'whole', name: i.specName || '', price: i.price, unit: i.unit }
+    addToCart({ id: i.productId, name: i.name, price: i.price, unit: i.unit, image: i.image, specs: [spec] }, i.qty, spec.id)
+  })
   uni.switchTab({ url: '/pages/cart/cart' })
 }
 </script>

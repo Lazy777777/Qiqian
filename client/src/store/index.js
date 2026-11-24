@@ -35,7 +35,8 @@ export async function loadConfig() {
 }
 
 // ---------- 购物车 ----------
-const CART_KEY = 'cart_v1'
+// 每行按「商品 + 规格」区分，spec 为 whole（整件）或 single（单包）
+const CART_KEY = 'cart_v2'
 export const cart = reactive({
   items: uni.getStorageSync(CART_KEY) || []
 })
@@ -55,28 +56,55 @@ export function syncBadge() {
   else uni.removeTabBarBadge({ ...opt, fail() {} })
 }
 
+export const lineKey = (productId, spec = 'whole') => `${productId}:${spec}`
+
 export const cartCount = computed(() => cart.items.reduce((s, i) => s + i.qty, 0))
 export const cartTotal = computed(() =>
   cart.items.filter((i) => i.checked).reduce((s, i) => s + i.price * i.qty, 0)
 )
 export const checkedItems = computed(() => cart.items.filter((i) => i.checked))
+// 商品金额（不含配送费、会员折扣前）未达到起送价时还差多少
+export const shortOfMin = computed(() => {
+  const min = userState.config ? userState.config.minOrderAmount || 0 : 0
+  return Math.max(0, min - cartTotal.value)
+})
 
-export function qtyOf(productId) {
-  const it = cart.items.find((i) => i.productId === productId)
-  return it ? it.qty : 0
+export function qtyOf(productId, spec) {
+  return cart.items
+    .filter((i) => i.productId === productId && (!spec || i.spec === spec))
+    .reduce((s, i) => s + i.qty, 0)
 }
 
-export function addToCart(p, delta = 1) {
-  const it = cart.items.find((i) => i.productId === p.id)
+// 整件 + 单包合计折算成单包数，用于前端库存提示
+export function canAdd(p, spec = 'whole') {
+  const whole = qtyOf(p.id, 'whole')
+  const single = qtyOf(p.id, 'single')
+  if (spec === 'single') return whole * p.packCount + single + 1 <= p.singleAvailable
+  if (whole + 1 > p.stock) return false
+  return !single || (whole + 1) * p.packCount + single <= p.singleAvailable
+}
+
+export function specOf(p, specId = 'whole') {
+  const s = (p.specs || []).find((x) => x.id === specId)
+  return s || { id: 'whole', name: '', price: p.price, unit: p.unit }
+}
+
+export function addToCart(p, delta = 1, specId = 'whole') {
+  const spec = specOf(p, specId)
+  const key = lineKey(p.id, spec.id)
+  const it = cart.items.find((i) => i.key === key)
   if (it) {
     it.qty += delta
     if (it.qty <= 0) cart.items.splice(cart.items.indexOf(it), 1)
   } else if (delta > 0) {
     cart.items.push({
+      key,
       productId: p.id,
+      spec: spec.id,
+      specName: spec.name,
       name: p.name,
-      price: p.price,
-      unit: p.unit,
+      price: spec.price,
+      unit: spec.unit,
       image: p.image,
       desc: p.desc,
       qty: delta,
@@ -86,16 +114,16 @@ export function addToCart(p, delta = 1) {
   persist()
 }
 
-export function setQty(productId, qty) {
-  const it = cart.items.find((i) => i.productId === productId)
+export function setQty(key, qty) {
+  const it = cart.items.find((i) => i.key === key)
   if (!it) return
   if (qty <= 0) cart.items.splice(cart.items.indexOf(it), 1)
   else it.qty = qty
   persist()
 }
 
-export function toggleChecked(productId) {
-  const it = cart.items.find((i) => i.productId === productId)
+export function toggleChecked(key) {
+  const it = cart.items.find((i) => i.key === key)
   if (it) it.checked = !it.checked
   persist()
 }
@@ -110,12 +138,16 @@ export function removeChecked() {
   persist()
 }
 
-// 同步最新价格/下架状态
+// 同步最新价格 / 规格 / 下架状态
 export function syncCartWithMenu(products) {
   const map = Object.fromEntries(products.map((p) => [p.id, p]))
   cart.items = cart.items
-    .filter((i) => map[i.productId])
-    .map((i) => ({ ...i, price: map[i.productId].price, name: map[i.productId].name, image: map[i.productId].image }))
+    .filter((i) => map[i.productId] && (i.spec === 'whole' || (map[i.productId].specs || []).some((s) => s.id === i.spec)))
+    .map((i) => {
+      const p = map[i.productId]
+      const s = specOf(p, i.spec)
+      return { ...i, price: s.price, unit: s.unit, specName: s.name, name: p.name, image: p.image }
+    })
   persist()
 }
 

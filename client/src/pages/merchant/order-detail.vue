@@ -34,9 +34,12 @@
 
     <view class="card block">
       <view class="block-title">商品（{{ order.items.reduce((s, i) => s + i.qty, 0) }} 件）</view>
-      <view v-for="i in order.items" :key="i.productId" class="g-row">
+      <view v-for="(i, k) in order.items" :key="k" class="g-row">
         <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
-        <view class="g-name">{{ i.name }}</view>
+        <view class="g-name">
+          {{ i.name }}
+          <text v-if="i.specName" :class="['g-spec', i.spec === 'single' && 'split']">{{ i.spec === 'single' ? '拆包 · ' + i.specName : i.specName }}</text>
+        </view>
         <text class="g-qty">×{{ i.qty }}</text>
         <text class="g-price">¥{{ money(i.price * i.qty) }}</text>
       </view>
@@ -231,5 +234,19 @@ async function refund() {
   padding: 20rpx 28rpx;
   background: $card;
   border-radius: 36rpx 36rpx 0 0;
+}
+.g-spec {
+  display: inline-block;
+  margin-left: 8rpx;
+  padding: 0 10rpx;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+  background: $card-2;
+  color: $ink-2;
+  &.split {
+    background: $mint-light;
+    color: #1f9e80;
+    font-weight: 600;
+  }
 }
 </style>
