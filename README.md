@@ -59,10 +59,12 @@ npm run server
 npm run dev:h5
 ```
 
-浏览器打开 <http://localhost:5173>，建议用开发者工具切换到手机尺寸。H5 开发模式下 `/api` 与 `/uploads` 由 Vite 代理到后端（可用环境变量 `API_TARGET` 改代理目标）。
+`npm run dev:h5` 启动后，用浏览器打开下面的地址即可查看（建议在开发者工具里切换到手机尺寸，如 390×844）：
 
-- 用户端：首页 `/#/`
-- 商家端：`/#/pages/merchant/login`，密码 `admin123`
+- 用户端首页：<http://localhost:5173/#/>
+- 商家端入口：<http://localhost:5173/#/pages/merchant/login>（默认密码 `admin123`）
+
+H5 开发模式下 `/api` 与 `/uploads` 由 Vite 代理到后端（可用环境变量 `API_TARGET` 改代理目标），所以需要先启动后端。
 
 ### 后端配置
 
