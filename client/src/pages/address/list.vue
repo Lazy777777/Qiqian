@@ -89,7 +89,7 @@ function remove(a) {
   margin-bottom: 20rpx;
   border: 3rpx solid transparent;
   &.picked {
-    border-color: $ink;
+    border-color: $primary;
   }
 }
 .a-top {
@@ -99,7 +99,7 @@ function remove(a) {
   gap: 10rpx;
 }
 .tag.dark {
-  background: $ink;
+  background: $primary;
   color: #fff;
 }
 .a-detail {
@@ -114,7 +114,7 @@ function remove(a) {
 .a-actions {
   margin-top: 20rpx;
   padding-top: 20rpx;
-  border-top: 1rpx solid #e6dfd2;
+  border-top: 1rpx solid #edf1f3;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -129,9 +129,9 @@ function remove(a) {
   width: 32rpx;
   height: 32rpx;
   border-radius: 50%;
-  border: 2rpx solid #b9b1a6;
+  border: 2rpx solid #c5cdd5;
   &.on {
-    border: 10rpx solid $ink;
+    border: 10rpx solid $primary;
   }
 }
 .act-link {

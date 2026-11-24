@@ -2,7 +2,7 @@
 export const STORE = {
   name: '鲜邻百货',
   title: 'GROCERY STORE',
-  slogan: '新鲜到家 · 30 分钟送达',
+  slogan: '校园外卖 · 30 分钟送到宿舍',
   phone: '400-000-0000',
   address: '本店地址（请在 src/config.js 修改）'
 }

@@ -42,7 +42,7 @@ const cancel = () => emit('cancel')
   right: 0;
   bottom: 0;
   z-index: 999;
-  background: rgba(20, 18, 16, 0.45);
+  background: rgba(31, 42, 55, 0.45);
   display: flex;
   align-items: flex-end;
 }

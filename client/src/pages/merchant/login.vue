@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <image class="illus" src="/static/illus/tile-order.svg" mode="aspectFit" />
+    <image class="illus" src="/static/illus/noodle.png" mode="aspectFit" />
     <view class="title">MERCHANT</view>
     <view class="sub">{{ store.name }} · 商家后台</view>
     <view class="form card">

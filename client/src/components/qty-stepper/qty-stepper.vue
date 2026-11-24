@@ -27,11 +27,11 @@ defineEmits(['change'])
   font-weight: 700;
 }
 .minus {
-  border: 2rpx solid $ink;
+  border: 2rpx solid $primary;
   color: $ink;
 }
 .plus {
-  background: $ink;
+  background: $primary;
   color: #fff;
 }
 .num {

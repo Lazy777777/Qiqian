@@ -203,7 +203,7 @@ app.delete('/api/addresses/:id', wrap((req) => {
 }))
 
 // ---------- 订单 ----------
-function priceOrder(user, items, deliveryType) {
+function priceOrder(user, items) {
   const { products } = store.db
   const lines = (items || []).map(({ productId, qty }) => {
     const p = products.find((x) => x.id === productId)
@@ -216,32 +216,23 @@ function priceOrder(user, items, deliveryType) {
   const vip = vipOf(user)
   const goodsAmount = lines.reduce((s, l) => s + l.price * l.qty, 0)
   const discount = Math.round(goodsAmount * (1 - vip.discount))
-  const deliveryFee =
-    deliveryType === 'pickup' || vip.freeDelivery || goodsAmount >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
+  const deliveryFee = vip.freeDelivery || goodsAmount >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
   return { lines, goodsAmount, discount, deliveryFee, payAmount: goodsAmount - discount + deliveryFee }
 }
 
 app.post('/api/orders/preview', wrap((req) => {
   const user = requireUser(req)
-  const { lines, ...rest } = priceOrder(user, req.body.items, req.body.deliveryType)
+  const { lines, ...rest } = priceOrder(user, req.body.items)
   return { items: lines, ...rest, vip: vipOf(user) }
 }))
 
 app.post('/api/orders', wrap((req) => {
   const user = requireUser(req)
-  const { items, deliveryType = 'delivery', addressId, contact, remark } = req.body || {}
-  const priced = priceOrder(user, items, deliveryType)
-  let address
-  if (deliveryType === 'delivery') {
-    const a = store.db.addresses.find((x) => x.id === addressId && x.userId === user.id)
-    if (!a) throw new HttpError(400, '请选择收货地址')
-    address = { name: a.name, phone: a.phone, region: a.region, detail: a.detail }
-  } else {
-    if (!contact || !contact.name || !/^1\d{10}$/.test(String(contact.phone || ''))) {
-      throw new HttpError(400, '请填写取货人姓名和手机号')
-    }
-    address = { name: contact.name, phone: String(contact.phone), region: '', detail: '到店自提' }
-  }
+  const { items, addressId, remark } = req.body || {}
+  const priced = priceOrder(user, items)
+  const a = store.db.addresses.find((x) => x.id === addressId && x.userId === user.id)
+  if (!a) throw new HttpError(400, '请选择收货地址')
+  const address = { name: a.name, phone: a.phone, region: a.region, detail: a.detail }
   const now = Date.now()
   const order = {
     id: store.id('o_'),
@@ -252,7 +243,6 @@ app.post('/api/orders', wrap((req) => {
     discount: priced.discount,
     deliveryFee: priced.deliveryFee,
     payAmount: priced.payAmount,
-    deliveryType,
     address,
     remark: String(remark || '').slice(0, 100),
     status: 'unpaid',

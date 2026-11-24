@@ -10,13 +10,13 @@
       <view v-for="o in orders" :key="o.id" class="order card" @click="open(o)">
         <view class="o-head">
           <view>
-            <view class="o-type">{{ o.deliveryType === 'pickup' ? '到店自提' : '外卖配送' }}</view>
-            <view class="o-no">订单号 {{ o.orderNo }}</view>
+            <view class="o-type">订单号 {{ o.orderNo }}</view>
+            <view class="o-no">{{ o.items.map((i) => i.name).join('、') }}</view>
           </view>
           <text class="o-status" :style="{ color: STATUS[o.status].color, background: STATUS[o.status].color + '1f' }">{{ o.statusText }}</text>
         </view>
         <view class="o-goods">
-          <image v-for="i in o.items.slice(0, 4)" :key="i.productId" class="o-img" :src="imgUrl(i.image)" mode="aspectFill" />
+          <image v-for="i in o.items.slice(0, 4)" :key="i.productId" class="o-img" :src="imgUrl(i.image)" mode="aspectFit" />
           <view class="o-count">
             <text class="muted">共 {{ o.items.reduce((s, i) => s + i.qty, 0) }} 件</text>
             <text class="price">¥{{ money(o.payAmount) }}</text>
@@ -30,7 +30,7 @@
       </view>
 
       <view v-if="loaded && !orders.length" class="empty">
-        <image class="empty-img" src="/static/illus/tile-order.svg" mode="aspectFit" />
+        <image class="empty-img" src="/static/illus/noodle.png" mode="aspectFit" />
         <text class="empty-text">暂无订单</text>
         <view class="btn-black" style="width: 300rpx; margin: 0 auto" @click="goMenu">去逛逛</view>
       </view>
@@ -103,7 +103,7 @@ const goMenu = () => uni.switchTab({ url: '/pages/menu/menu' })
   font-size: 26rpx;
   color: $ink-2;
   &.on {
-    background: $ink;
+    background: $primary;
     color: #fff;
     font-weight: 600;
   }
@@ -120,14 +120,22 @@ const goMenu = () => uni.switchTab({ url: '/pages/menu/menu' })
   justify-content: space-between;
   align-items: flex-start;
 }
+.o-head > view:first-child {
+  flex: 1;
+  min-width: 0;
+  margin-right: 16rpx;
+}
 .o-type {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 700;
 }
 .o-no {
-  margin-top: 4rpx;
+  margin-top: 6rpx;
   font-size: 22rpx;
   color: $ink-3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .o-status {
   font-size: 24rpx;

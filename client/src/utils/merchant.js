@@ -6,13 +6,7 @@ export const NEXT_ACTION = {
   delivering: { status: 'completed', text: '确认送达' }
 }
 
-export function nextAction(order) {
-  const a = NEXT_ACTION[order.status]
-  if (!a) return null
-  if (order.deliveryType === 'pickup' && order.status === 'preparing') return { ...a, text: '备货完成' }
-  if (order.deliveryType === 'pickup' && order.status === 'delivering') return { ...a, text: '已取货' }
-  return a
-}
+export const nextAction = (order) => NEXT_ACTION[order.status] || null
 
 export const canRefund = (o) => ['pending', 'preparing', 'delivering', 'completed'].includes(o.status)
 
@@ -26,7 +20,7 @@ export function refundOrder(order) {
       editable: true,
       placeholderText: '退款原因（选填），款项将退回用户会员余额',
       confirmText: '确认退款',
-      confirmColor: '#c0583c',
+      confirmColor: '#f0564a',
       success: async (r) => {
         if (!r.confirm) return resolve(null)
         const o = await api.post(`/api/merchant/orders/${order.id}/refund`, { reason: r.content || '商家退款' }, { merchant: true })

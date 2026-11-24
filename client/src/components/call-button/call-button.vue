@@ -31,7 +31,7 @@ function call() {
   height: 60rpx;
   padding: 0 26rpx;
   border-radius: 999rpx;
-  background: #2f6b3a;
+  background: #2ec4a0;
   color: #fff;
   font-size: 26rpx;
   font-weight: 600;

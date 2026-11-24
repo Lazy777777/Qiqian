@@ -1,11 +1,10 @@
 <template>
   <view class="page">
     <view class="top">
-      <view class="switch">
-        <view :class="['sw', cart.deliveryType === 'delivery' && 'on']" @click="cart.deliveryType = 'delivery'">外卖配送</view>
-        <view :class="['sw', cart.deliveryType === 'pickup' && 'on']" @click="cart.deliveryType = 'pickup'">到店自提</view>
+      <view class="notice">
+        <text class="notice-tag">外卖配送</text>
+        <text>{{ notice }}</text>
       </view>
-      <view class="notice">{{ notice }}</view>
     </view>
 
     <view class="body">
@@ -24,7 +23,7 @@
       <scroll-view scroll-y class="main" :scroll-top="scrollTop">
         <view class="cat-title">{{ activeName }}</view>
         <view v-for="p in list" :key="p.id" class="item card">
-          <image class="img" :src="imgUrl(p.image)" mode="aspectFill" />
+          <image class="img" :src="imgUrl(p.image)" mode="aspectFit" />
           <view class="info">
             <view class="name">{{ p.name }}</view>
             <view class="desc">{{ p.desc }}</view>
@@ -66,7 +65,7 @@ import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { api, imgUrl } from '../../utils/request'
 import { yuan, money } from '../../utils/format'
-import { cart, cartCount, cartTotal, qtyOf, addToCart, syncCartWithMenu, userState, loadConfig, ensureLogin } from '../../store'
+import { cart, menuState, cartCount, cartTotal, qtyOf, addToCart, syncCartWithMenu, userState, loadConfig, ensureLogin } from '../../store'
 
 const categories = ref([])
 const products = ref([])
@@ -87,13 +86,11 @@ const catCount = computed(() => {
 
 const notice = computed(() => {
   const cfg = userState.config
-  if (cart.deliveryType === 'pickup') return '到店自提免配送费，下单后凭订单号取货'
-  if (!cfg) return '外卖配送，最快 30 分钟送达'
-  return `满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费（银卡及以上会员全场免配送费）`
+  if (!cfg) return '外卖配送，最快 30 分钟送到宿舍楼下'
+  return `满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费 · 银卡会员全场包邮`
 })
 const deliveryTip = computed(() => {
   const cfg = userState.config
-  if (cart.deliveryType === 'pickup') return '到店自提 · 免配送费'
   if (!cfg) return ''
   const gap = cfg.freeDeliveryThreshold - cartTotal.value
   return gap > 0 ? `再买 ¥${yuan(gap)} 免配送费` : '已免配送费'
@@ -104,6 +101,10 @@ onShow(async () => {
   const d = await api.get('/api/menu')
   categories.value = d.categories
   products.value = d.products
+  if (menuState.category) {
+    active.value = menuState.category
+    menuState.category = ''
+  }
   if (!active.value || !d.categories.some((c) => c.id === active.value)) active.value = d.categories[0]?.id || ''
   syncCartWithMenu(d.products)
   loaded.value = true
@@ -130,31 +131,24 @@ async function checkout() {
 .top {
   padding: 16rpx 28rpx 12rpx;
 }
-.switch {
-  display: flex;
-  background: $card-2;
-  border-radius: 999rpx;
-  padding: 6rpx;
-  .sw {
-    flex: 1;
-    text-align: center;
-    height: 68rpx;
-    line-height: 68rpx;
-    border-radius: 999rpx;
-    font-size: 28rpx;
-    color: $ink-2;
-    &.on {
-      background: $ink;
-      color: #fff;
-      font-weight: 600;
-    }
-  }
-}
 .notice {
-  margin-top: 14rpx;
-  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 18rpx 24rpx;
+  border-radius: 999rpx;
+  background: $mint-light;
+  font-size: 24rpx;
   color: $ink-2;
-  text-align: center;
+}
+.notice-tag {
+  flex-shrink: 0;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: $mint;
+  color: #fff;
+  font-weight: 700;
+  font-size: 22rpx;
 }
 .body {
   flex: 1;
@@ -185,7 +179,7 @@ async function checkout() {
       bottom: 34rpx;
       width: 8rpx;
       border-radius: 0 8rpx 8rpx 0;
-      background: $ink;
+      background: $primary;
     }
   }
 }
@@ -276,12 +270,12 @@ async function checkout() {
   bottom: calc(var(--window-bottom, 0px) + 24rpx);
   height: 108rpx;
   border-radius: 999rpx;
-  background: $ink;
+  background: $primary;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 10rpx 0 28rpx;
-  box-shadow: 0 16rpx 40rpx rgba(20, 18, 16, 0.25);
+  box-shadow: 0 16rpx 40rpx rgba(31, 42, 55, 0.25);
   z-index: 10;
 }
 .bar-left {
@@ -324,7 +318,7 @@ async function checkout() {
 }
 .bar-tip {
   font-size: 20rpx;
-  color: #c9c1b6;
+  color: rgba(255, 255, 255, 0.85);
 }
 .bar-btn {
   height: 88rpx;

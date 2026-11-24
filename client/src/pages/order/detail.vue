@@ -19,15 +19,9 @@
       </view>
       <view class="btn-black small light" @click="copy">复制</view>
     </view>
-    <view v-if="order.deliveryType === 'pickup' && order.status !== 'refunded'" class="no card">
-      <view>
-        <view class="no-label">取货码（到店出示）</view>
-        <view class="pick-code">{{ order.orderNo.slice(-4) }}</view>
-      </view>
-    </view>
 
     <view class="card block">
-      <view class="block-title">{{ order.deliveryType === 'pickup' ? '到店自提' : '配送信息' }}</view>
+      <view class="block-title">配送信息</view>
       <view class="addr">{{ order.address.region }} {{ order.address.detail }}</view>
       <view class="muted">{{ order.address.name }} {{ order.address.phone }}</view>
     </view>
@@ -35,7 +29,7 @@
     <view class="card block">
       <view class="block-title">商品</view>
       <view v-for="i in order.items" :key="i.productId" class="g-row">
-        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFill" />
+        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
         <view class="g-name">{{ i.name }}<text class="muted"> ×{{ i.qty }}</text></view>
         <text>¥{{ money(i.price * i.qty) }}</text>
       </view>
@@ -82,7 +76,7 @@ import { STORE } from '../../config'
 import { api, imgUrl } from '../../utils/request'
 import { money, dateTime, STATUS } from '../../utils/format'
 import { usePay } from '../../utils/usePay'
-import { addToCart, cart, userState, refreshUser } from '../../store'
+import { addToCart, userState, refreshUser } from '../../store'
 
 const { sheet, payOrder } = usePay()
 const order = ref(null)
@@ -96,7 +90,7 @@ const steps = computed(() => {
   return [
     { key: 'pending', text: '待接单' },
     { key: 'preparing', text: '备货中' },
-    { key: 'delivering', text: order.value.deliveryType === 'pickup' ? '待取货' : '配送中' },
+    { key: 'delivering', text: '配送中' },
     { key: 'completed', text: '已完成' }
   ]
 })
@@ -152,7 +146,6 @@ function callStore() {
 }
 function again() {
   order.value.items.forEach((i) => addToCart({ id: i.productId, name: i.name, price: i.price, unit: i.unit, image: i.image }, i.qty))
-  cart.deliveryType = order.value.deliveryType
   uni.switchTab({ url: '/pages/cart/cart' })
 }
 </script>
@@ -172,8 +165,8 @@ function again() {
   display: inline-block;
   padding: 6rpx 20rpx;
   border-radius: 999rpx;
-  background: #e3eedb;
-  color: #4e7a3a;
+  background: #e3f7f0;
+  color: #2fb886;
   font-size: 24rpx;
   margin-bottom: 16rpx;
 }
@@ -197,7 +190,7 @@ function again() {
     right: 40rpx;
     top: 10rpx;
     height: 4rpx;
-    background: #ddd5c8;
+    background: #dfe6ea;
   }
 }
 .step {
@@ -212,19 +205,19 @@ function again() {
     width: 24rpx;
     height: 24rpx;
     border-radius: 50%;
-    background: #ddd5c8;
+    background: #dfe6ea;
     margin-bottom: 10rpx;
   }
   &.done {
     color: $ink;
     .dot {
-      background: $ink;
+      background: $primary;
     }
   }
   &.cur {
     font-weight: 700;
     .dot {
-      box-shadow: 0 0 0 8rpx rgba(20, 18, 16, 0.15);
+      box-shadow: 0 0 0 8rpx rgba(31, 42, 55, 0.15);
     }
   }
 }
@@ -243,12 +236,6 @@ function again() {
   font-weight: 700;
   letter-spacing: 2rpx;
   font-family: Menlo, Consolas, monospace;
-}
-.pick-code {
-  margin-top: 6rpx;
-  font-size: 72rpx;
-  font-weight: 800;
-  letter-spacing: 12rpx;
 }
 .block-title {
   font-size: 30rpx;
@@ -281,7 +268,7 @@ function again() {
   padding-top: 14rpx;
   font-size: 26rpx;
   &.total {
-    border-top: 1rpx dashed #d5cdbf;
+    border-top: 1rpx dashed #dfe6ea;
     margin-top: 12rpx;
     padding-top: 18rpx;
     font-weight: 700;

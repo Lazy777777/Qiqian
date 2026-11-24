@@ -20,13 +20,13 @@ export function shortTime(ts) {
 }
 
 export const STATUS = {
-  unpaid: { text: '待付款', color: '#c0583c', desc: '请尽快完成支付' },
-  pending: { text: '待接单', color: '#c8875a', desc: '商家正在确认您的订单' },
-  preparing: { text: '备货中', color: '#a8693f', desc: '商家正在为您打包商品' },
-  delivering: { text: '配送中', color: '#4f7fa8', desc: '骑手正在火速赶来' },
-  completed: { text: '已完成', color: '#6f8f5a', desc: '感谢光临，欢迎再来' },
-  refunded: { text: '已退款', color: '#8c8279', desc: '款项已退回会员余额' },
-  cancelled: { text: '已取消', color: '#8c8279', desc: '订单已取消' }
+  unpaid: { text: '待付款', color: '#f0564a', desc: '请尽快完成支付' },
+  pending: { text: '待接单', color: '#ff7a59', desc: '商家正在确认您的订单' },
+  preparing: { text: '备货中', color: '#f2a93b', desc: '商家正在为您打包商品' },
+  delivering: { text: '配送中', color: '#4aa8e8', desc: '骑手正在火速赶来' },
+  completed: { text: '已完成', color: '#2fb886', desc: '感谢光临，欢迎再来' },
+  refunded: { text: '已退款', color: '#8a96a3', desc: '款项已退回会员余额' },
+  cancelled: { text: '已取消', color: '#8a96a3', desc: '订单已取消' }
 }
 
 export const maskPhone = (p) => (p ? String(p).replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2') : '')

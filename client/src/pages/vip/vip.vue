@@ -11,7 +11,7 @@
         </view>
         <view class="vip-perk">{{ user ? user.vip.perks : '' }}</view>
       </view>
-      <image class="vip-img" src="/static/illus/vip-character.svg" mode="aspectFit" />
+      <image class="vip-img" src="/static/illus/girl.png" mode="aspectFit" />
     </view>
 
     <view v-if="user && user.nextVip" class="progress card">
@@ -112,7 +112,8 @@ async function doRecharge() {
   margin-bottom: 24rpx;
 }
 .vip {
-  padding: 40rpx 24rpx 36rpx 48rpx;
+  background: linear-gradient(135deg, $blue-light 0%, $mint-light 100%);
+  padding: 32rpx 24rpx 24rpx 48rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -126,7 +127,7 @@ async function doRecharge() {
   margin-top: 10rpx;
   font-size: 26rpx;
   font-weight: 700;
-  color: $accent-dark;
+  color: $primary-dark;
 }
 .vip-meta {
   margin-top: 14rpx;
@@ -142,8 +143,8 @@ async function doRecharge() {
   color: $ink-3;
 }
 .vip-img {
-  width: 220rpx;
-  height: 250rpx;
+  width: 200rpx;
+  height: 290rpx;
 }
 .progress {
   padding: 28rpx;
@@ -164,7 +165,7 @@ async function doRecharge() {
   }
   .p-fill {
     height: 100%;
-    background: $ink;
+    background: $primary;
     border-radius: 999rpx;
   }
 }
@@ -180,7 +181,7 @@ async function doRecharge() {
   padding: 28rpx;
   border: 3rpx solid transparent;
   &.on {
-    border-color: $ink;
+    border-color: $primary;
     background: #fff;
   }
 }
@@ -218,10 +219,10 @@ async function doRecharge() {
   gap: 20rpx;
   font-size: 24rpx;
   & + .lv {
-    border-top: 1rpx solid #e6dfd2;
+    border-top: 1rpx solid #edf1f3;
   }
   &.cur .lv-name {
-    background: $ink;
+    background: $primary;
     color: #fff;
   }
 }
@@ -250,7 +251,7 @@ async function doRecharge() {
   padding: 22rpx 0;
   font-size: 26rpx;
   & + .log {
-    border-top: 1rpx solid #e6dfd2;
+    border-top: 1rpx solid #edf1f3;
   }
   .small {
     font-size: 22rpx;
@@ -260,7 +261,7 @@ async function doRecharge() {
 .chg {
   font-weight: 700;
   &.plus {
-    color: #4e7a3a;
+    color: #2fb886;
   }
 }
 .none {

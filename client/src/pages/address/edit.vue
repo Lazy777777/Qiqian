@@ -28,7 +28,7 @@
       </view>
       <view class="field">
         <text class="label">设为默认</text>
-        <switch :checked="form.isDefault" color="#141210" style="transform: scale(0.8)" @change="(e) => (form.isDefault = e.detail.value)" />
+        <switch :checked="form.isDefault" color="#ff7a59" style="transform: scale(0.8)" @change="(e) => (form.isDefault = e.detail.value)" />
       </view>
     </view>
     <button class="btn-black save" :disabled="saving" @click="save">保存地址</button>
@@ -102,7 +102,7 @@ async function save() {
   align-items: center;
   min-height: 104rpx;
   & + .field {
-    border-top: 1rpx solid #e6dfd2;
+    border-top: 1rpx solid #edf1f3;
   }
 }
 .label {
@@ -118,7 +118,7 @@ async function save() {
   display: flex;
   gap: 16rpx;
   .tag.on {
-    background: $ink;
+    background: $primary;
     color: #fff;
   }
 }

@@ -20,7 +20,7 @@
     </view>
 
     <view class="card block">
-      <view class="block-title">{{ order.deliveryType === 'pickup' ? '自提联系人' : '收货信息' }}</view>
+      <view class="block-title">收货信息</view>
       <view class="contact">
         <view class="c-main">
           <view class="c-name">{{ order.address.name }}</view>
@@ -35,7 +35,7 @@
     <view class="card block">
       <view class="block-title">商品（{{ order.items.reduce((s, i) => s + i.qty, 0) }} 件）</view>
       <view v-for="i in order.items" :key="i.productId" class="g-row">
-        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFill" />
+        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
         <view class="g-name">{{ i.name }}</view>
         <text class="g-qty">×{{ i.qty }}</text>
         <text class="g-price">¥{{ money(i.price * i.qty) }}</text>
@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { api, imgUrl } from '../../utils/request'
 import { money, dateTime, STATUS } from '../../utils/format'
@@ -70,12 +70,12 @@ import { nextAction, canRefund, updateStatus, refundOrder } from '../../utils/me
 
 const order = ref(null)
 let id = ''
-const statusOptions = computed(() => [
+const statusOptions = [
   { key: 'pending', text: '待接单' },
   { key: 'preparing', text: '备货中' },
-  { key: 'delivering', text: order.value.deliveryType === 'pickup' ? '待取货' : '配送中' },
+  { key: 'delivering', text: '配送中' },
   { key: 'completed', text: '已完成' }
-])
+]
 
 onLoad((q) => (id = q.id))
 onShow(load)
@@ -137,7 +137,7 @@ async function refund() {
   background: $card-2;
   color: $ink-2;
   &.on {
-    background: $ink;
+    background: $primary;
     color: #fff;
     font-weight: 700;
   }
@@ -205,7 +205,7 @@ async function refund() {
   padding-top: 14rpx;
   font-size: 26rpx;
   &.total {
-    border-top: 1rpx dashed #d5cdbf;
+    border-top: 1rpx dashed #dfe6ea;
     margin-top: 12rpx;
     padding-top: 18rpx;
     font-weight: 700;

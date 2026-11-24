@@ -1,5 +1,5 @@
 // 线条插画风格的商品示意图（SVG），用于种子数据。商家可在后台替换为真实图片。
-const INK = '#2a211c'
+const INK = '#2b3440'
 
 const wrap = (body, bg) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="400" height="400">
 <rect width="200" height="200" rx="36" fill="${bg}"/>
@@ -59,7 +59,7 @@ const shapes = {
     <circle cx="100" cy="121" r="7"/>`
 }
 
-function productSvg(shape, color = '#c89a6b', bg = '#f4efe6') {
+function productSvg(shape, color = '#c89a6b', bg = '#eef7f4') {
   return wrap((shapes[shape] || shapes.snack)(color), bg)
 }
 

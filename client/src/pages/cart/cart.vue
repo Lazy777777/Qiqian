@@ -4,7 +4,7 @@
       <view class="head">
         <view>
           <view class="h-title">购物袋</view>
-          <view class="h-sub">共 {{ cartCount }} 件商品 · {{ cart.deliveryType === 'pickup' ? '到店自提' : '外卖配送' }}</view>
+          <view class="h-sub">共 {{ cartCount }} 件商品 · 外卖配送</view>
         </view>
         <text class="h-action" @click="editing = !editing">{{ editing ? '完成' : '管理' }}</text>
       </view>
@@ -14,7 +14,7 @@
           <view :class="['check', i.checked && 'on']" @click="toggleChecked(i.productId)">
             <text v-if="i.checked">✓</text>
           </view>
-          <image class="img" :src="imgUrl(i.image)" mode="aspectFill" />
+          <image class="img" :src="imgUrl(i.image)" mode="aspectFit" />
           <view class="info">
             <view class="name">{{ i.name }}</view>
             <view class="desc">{{ i.desc }}</view>
@@ -47,7 +47,7 @@
     </template>
 
     <view v-else class="empty">
-      <image class="empty-img" src="/static/illus/tile-pickup.svg" mode="aspectFit" />
+      <image class="empty-img" src="/static/illus/tissue.png" mode="aspectFit" />
       <text class="empty-text">购物袋空空如也，去挑点好物吧</text>
       <view class="btn-black" style="width: 300rpx; margin: 0 auto" @click="goMenu">去选购</view>
     </view>
@@ -67,7 +67,6 @@ import {
 const editing = ref(false)
 const allChecked = computed(() => cart.items.length > 0 && cart.items.every((i) => i.checked))
 const tip = computed(() => {
-  if (cart.deliveryType === 'pickup') return '到店自提免配送费，凭订单号到店取货'
   const cfg = userState.config
   if (!cfg) return '外卖配送，最快 30 分钟送达'
   return `配送费 ¥${yuan(cfg.deliveryFee)}，满 ¥${yuan(cfg.freeDeliveryThreshold)} 免配送费；银卡及以上会员免配送费`
@@ -130,22 +129,22 @@ const goMenu = () => uni.switchTab({ url: '/pages/menu/menu' })
   align-items: center;
   padding: 24rpx 0;
   & + .row {
-    border-top: 1rpx solid #e6dfd2;
+    border-top: 1rpx solid #edf1f3;
   }
 }
 .check {
   width: 40rpx;
   height: 40rpx;
   border-radius: 50%;
-  border: 2rpx solid #b9b1a6;
+  border: 2rpx solid #c5cdd5;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24rpx;
   flex-shrink: 0;
   &.on {
-    background: $ink;
-    border-color: $ink;
+    background: $primary;
+    border-color: $primary;
     color: #fff;
   }
 }
@@ -208,7 +207,7 @@ const goMenu = () => uni.switchTab({ url: '/pages/menu/menu' })
   padding: 0 28rpx;
   gap: 20rpx;
   border-radius: 36rpx 36rpx 0 0;
-  box-shadow: 0 -8rpx 30rpx rgba(20, 18, 16, 0.06);
+  box-shadow: 0 -8rpx 30rpx rgba(31, 42, 55, 0.06);
 }
 .all {
   display: flex;

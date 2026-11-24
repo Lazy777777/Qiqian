@@ -41,7 +41,6 @@
         <view class="o-head">
           <view class="o-left">
             <text v-if="!o.merchantSeen" class="new">NEW</text>
-            <text class="o-type">{{ o.deliveryType === 'pickup' ? '自提' : '外卖' }}</text>
             <text class="o-code">#{{ o.orderNo.slice(-4) }}</text>
           </view>
           <text class="o-status" :style="{ color: STATUS[o.status].color, background: STATUS[o.status].color + '1f' }">{{ o.statusText }}</text>
@@ -191,10 +190,10 @@ function logout() {
     color: $ink-2;
   }
   &.alert {
-    background: $ink;
+    background: $primary;
     color: #fff;
     .lab {
-      color: #d9c3a5;
+      color: #ffe1d6;
     }
   }
 }
@@ -213,14 +212,17 @@ function logout() {
   font-size: 24rpx;
   color: $ink-2;
   &.on {
-    background: $ink;
+    background: $primary;
     color: #fff;
     font-weight: 600;
   }
   .cnt {
     margin-left: 6rpx;
-    color: $accent;
+    color: $primary;
     font-weight: 800;
+  }
+  &.on .cnt {
+    color: #fff;
   }
 }
 .order {
@@ -228,9 +230,9 @@ function logout() {
   margin-bottom: 20rpx;
   border: 3rpx solid transparent;
   &.fresh {
-    border-color: $accent;
-    background: #fbf1e4;
-    box-shadow: 0 12rpx 36rpx rgba(200, 135, 90, 0.28);
+    border-color: $primary;
+    background: #fff4ef;
+    box-shadow: 0 12rpx 36rpx rgba(255, 122, 89, 0.22);
   }
 }
 .o-head {
@@ -251,13 +253,6 @@ function logout() {
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
   letter-spacing: 2rpx;
-}
-.o-type {
-  font-size: 22rpx;
-  padding: 4rpx 12rpx;
-  border-radius: 8rpx;
-  background: $ink;
-  color: #fff;
 }
 .o-code {
   font-size: 40rpx;

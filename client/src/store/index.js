@@ -37,9 +37,11 @@ export async function loadConfig() {
 // ---------- 购物车 ----------
 const CART_KEY = 'cart_v1'
 export const cart = reactive({
-  items: uni.getStorageSync(CART_KEY) || [],
-  deliveryType: 'delivery'
+  items: uni.getStorageSync(CART_KEY) || []
 })
+
+// 首页入口跳到选购页时指定分类（tabBar 页面无法带参数）
+export const menuState = reactive({ category: '' })
 
 function persist() {
   uni.setStorageSync(CART_KEY, cart.items)

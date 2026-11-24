@@ -19,14 +19,14 @@
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "鲜邻百货",
-    "navigationBarBackgroundColor": "#DDD7CB",
-    "backgroundColor": "#DDD7CB",
+    "navigationBarBackgroundColor": "#F3F9F7",
+    "backgroundColor": "#F3F9F7",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
-    "color": "#9A9188",
-    "selectedColor": "#141210",
-    "backgroundColor": "#F4F0E8",
+    "color": "#9AA5B1",
+    "selectedColor": "#FF7A59",
+    "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
       { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tab/home.png", "selectedIconPath": "static/tab/home-active.png" },

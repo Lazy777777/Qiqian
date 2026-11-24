@@ -45,7 +45,7 @@ button::after {
   padding: 0 44rpx;
   margin: 0;
   border-radius: 999rpx;
-  background: $ink;
+  background: $primary;
   color: #fff;
   font-size: 30rpx;
   font-weight: 600;
@@ -58,8 +58,8 @@ button::after {
   }
   &.ghost {
     background: transparent;
-    color: $ink;
-    border: 2rpx solid $ink;
+    color: $primary;
+    border: 2rpx solid $primary;
   }
   &.light {
     background: $card-2;
@@ -70,7 +70,7 @@ button::after {
   }
   &[disabled],
   &.disabled {
-    background: #b9b1a6 !important;
+    background: #c5cdd5 !important;
     color: #f4f0e8 !important;
   }
 }

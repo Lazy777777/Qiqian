@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <view class="pic card" @click="chooseImage">
-      <image v-if="form.image" class="pic-img" :src="imgUrl(form.image)" mode="aspectFill" />
+      <image v-if="form.image" class="pic-img" :src="imgUrl(form.image)" mode="aspectFit" />
       <view v-else class="pic-empty">＋ 上传商品图片</view>
       <view class="pic-tip">{{ uploading ? '上传中…' : '点击更换图片（≤5MB）' }}</view>
     </view>
@@ -43,7 +43,7 @@
       </view>
       <view class="field">
         <text class="label">上架销售</text>
-        <switch :checked="form.onSale" color="#141210" style="transform: scale(0.8)" @change="(e) => (form.onSale = e.detail.value)" />
+        <switch :checked="form.onSale" color="#ff7a59" style="transform: scale(0.8)" @change="(e) => (form.onSale = e.detail.value)" />
       </view>
     </view>
     <button class="btn-black save" :disabled="saving" @click="save">保存</button>
@@ -166,7 +166,7 @@ async function save() {
   align-items: center;
   min-height: 100rpx;
   & + .field {
-    border-top: 1rpx solid #e6dfd2;
+    border-top: 1rpx solid #edf1f3;
   }
 }
 .label {

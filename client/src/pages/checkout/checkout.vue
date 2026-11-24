@@ -1,43 +1,20 @@
 <template>
   <view class="page">
-    <view class="switch">
-      <view :class="['sw', cart.deliveryType === 'delivery' && 'on']" @click="setType('delivery')">外卖配送</view>
-      <view :class="['sw', cart.deliveryType === 'pickup' && 'on']" @click="setType('pickup')">到店自提</view>
-    </view>
-
-    <view v-if="cart.deliveryType === 'delivery'" class="addr card" @click="pickAddress">
-      <template v-if="address">
-        <view class="addr-main">
-          <view class="addr-detail">{{ address.region }} {{ address.detail }}</view>
-          <view class="addr-contact">{{ address.name }} {{ address.phone }}</view>
-        </view>
-        <text class="arrow">›</text>
-      </template>
-      <template v-else>
-        <view class="addr-main"><view class="addr-detail">＋ 添加收货地址</view></view>
-        <text class="arrow">›</text>
-      </template>
-    </view>
-
-    <view v-else class="addr card pickup">
-      <view class="pick-store">
-        <text class="label">自提门店</text>
-        <text>{{ store.name }} · {{ store.address }}</text>
+    <view class="addr card" @click="pickAddress">
+      <view class="addr-icon">送</view>
+      <view v-if="address" class="addr-main">
+        <view class="addr-label">配送至</view>
+        <view class="addr-detail">{{ address.region }} {{ address.detail }}</view>
+        <view class="addr-contact">{{ address.name }} {{ address.phone }}</view>
       </view>
-      <view class="field">
-        <text class="label">取货人</text>
-        <input v-model="contact.name" placeholder="请填写姓名" class="input" />
-      </view>
-      <view class="field">
-        <text class="label">手机号</text>
-        <input v-model="contact.phone" type="number" maxlength="11" placeholder="用于取货联系" class="input" />
-      </view>
+      <view v-else class="addr-main"><view class="addr-detail">＋ 添加收货地址</view></view>
+      <text class="arrow">›</text>
     </view>
 
     <view class="goods card">
       <view class="block-title">商品清单</view>
       <view v-for="i in items" :key="i.productId" class="g-row">
-        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFill" />
+        <image class="g-img" :src="imgUrl(i.image)" mode="aspectFit" />
         <view class="g-name">{{ i.name }}<text class="muted"> ×{{ i.qty }}</text></view>
         <text class="g-price">¥{{ money(i.price * i.qty) }}</text>
       </view>
@@ -94,22 +71,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { STORE } from '../../config'
 import { api, imgUrl } from '../../utils/request'
 import { money } from '../../utils/format'
 import { usePay } from '../../utils/usePay'
-import { cart, checkedItems, checkoutState, setQty, userState, refreshUser } from '../../store'
+import { checkedItems, checkoutState, setQty, userState, refreshUser } from '../../store'
 
-const store = STORE
 const { sheet, payOrder } = usePay()
 const addresses = ref([])
 const preview = ref({ goodsAmount: 0, discount: 0, deliveryFee: 0, payAmount: 0 })
 const remark = ref('')
 const method = ref('balance')
 const submitting = ref(false)
-const contact = reactive({ name: '', phone: '' })
 
 const items = computed(() => checkedItems.value)
 const balance = computed(() => (userState.user ? userState.user.balance : 0))
@@ -120,34 +94,23 @@ const address = computed(
 async function loadPreview() {
   if (!items.value.length) return
   preview.value = await api.post('/api/orders/preview', {
-    items: items.value.map((i) => ({ productId: i.productId, qty: i.qty })),
-    deliveryType: cart.deliveryType
+    items: items.value.map((i) => ({ productId: i.productId, qty: i.qty }))
   })
 }
 
 onShow(async () => {
   await refreshUser()
   addresses.value = await api.get('/api/addresses')
-  const def = addresses.value.find((a) => a.isDefault) || addresses.value[0]
-  if (def && !contact.name) {
-    contact.name = def.name
-    contact.phone = def.phone
-  }
   await loadPreview()
   if (balance.value < preview.value.payAmount) method.value = 'wechat'
 })
 
-watch(() => cart.deliveryType, loadPreview)
-
-function setType(t) {
-  cart.deliveryType = t
-}
 const pickAddress = () => uni.navigateTo({ url: '/pages/address/list?select=1' })
 const goVip = () => uni.navigateTo({ url: '/pages/vip/vip' })
 
 async function submit() {
   if (submitting.value) return
-  if (cart.deliveryType === 'delivery' && !address.value) return uni.showToast({ title: '请添加收货地址', icon: 'none' })
+  if (!address.value) return uni.showToast({ title: '请添加收货地址', icon: 'none' })
   if (method.value === 'balance' && balance.value < preview.value.payAmount) {
     return uni.showToast({ title: '余额不足，请充值或选择微信支付', icon: 'none' })
   }
@@ -155,9 +118,7 @@ async function submit() {
   try {
     const order = await api.post('/api/orders', {
       items: items.value.map((i) => ({ productId: i.productId, qty: i.qty })),
-      deliveryType: cart.deliveryType,
-      addressId: address.value && address.value.id,
-      contact,
+      addressId: address.value.id,
       remark: remark.value
     })
     items.value.map((i) => i.productId).forEach((id) => setQty(id, 0))
@@ -176,26 +137,6 @@ async function submit() {
 .page {
   padding: 20rpx 28rpx;
 }
-.switch {
-  display: flex;
-  background: $card-2;
-  border-radius: 999rpx;
-  padding: 6rpx;
-  margin-bottom: 20rpx;
-  .sw {
-    flex: 1;
-    text-align: center;
-    height: 68rpx;
-    line-height: 68rpx;
-    border-radius: 999rpx;
-    color: $ink-2;
-    &.on {
-      background: $ink;
-      color: #fff;
-      font-weight: 600;
-    }
-  }
-}
 .card {
   padding: 28rpx;
   margin-bottom: 20rpx;
@@ -203,12 +144,28 @@ async function submit() {
 .addr {
   display: flex;
   align-items: center;
-  &.pickup {
-    display: block;
-  }
+}
+.addr-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: $mint-light;
+  color: $mint;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  flex-shrink: 0;
 }
 .addr-main {
   flex: 1;
+}
+.addr-label {
+  font-size: 22rpx;
+  color: $mint;
+  font-weight: 600;
+  margin-bottom: 4rpx;
 }
 .addr-detail {
   font-size: 32rpx;
@@ -228,17 +185,6 @@ async function submit() {
   margin-right: 20rpx;
   flex-shrink: 0;
   width: 130rpx;
-}
-.pick-store {
-  display: flex;
-  font-size: 26rpx;
-  padding-bottom: 20rpx;
-  border-bottom: 1rpx solid #e6dfd2;
-}
-.field {
-  display: flex;
-  align-items: center;
-  padding-top: 22rpx;
 }
 .input {
   flex: 1;
@@ -278,7 +224,7 @@ async function submit() {
   &.total {
     margin-top: 12rpx;
     padding-top: 20rpx;
-    border-top: 1rpx dashed #d5cdbf;
+    border-top: 1rpx dashed #dfe6ea;
     font-weight: 700;
     .price {
       font-size: 36rpx;
@@ -304,7 +250,7 @@ async function submit() {
   align-items: center;
   justify-content: center;
   &.vip {
-    background: $ink;
+    background: $primary;
   }
   &.wx {
     background: #07c160;
@@ -332,9 +278,9 @@ async function submit() {
   width: 40rpx;
   height: 40rpx;
   border-radius: 50%;
-  border: 2rpx solid #b9b1a6;
+  border: 2rpx solid #c5cdd5;
   &.on {
-    border: 12rpx solid $ink;
+    border: 12rpx solid $primary;
   }
 }
 .bar {
@@ -347,7 +293,7 @@ async function submit() {
   align-items: center;
   padding: 20rpx 28rpx;
   border-radius: 36rpx 36rpx 0 0;
-  box-shadow: 0 -8rpx 30rpx rgba(20, 18, 16, 0.06);
+  box-shadow: 0 -8rpx 30rpx rgba(31, 42, 55, 0.06);
 }
 .bar-sum {
   flex: 1;

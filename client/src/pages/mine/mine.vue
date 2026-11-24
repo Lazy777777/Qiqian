@@ -78,7 +78,7 @@ const call = () => uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
   width: 112rpx;
   height: 112rpx;
   border-radius: 50%;
-  background: $ink;
+  background: $primary;
   color: $card;
   display: flex;
   align-items: center;
@@ -96,7 +96,7 @@ const call = () => uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
   color: $ink-2;
 }
 .vipcard {
-  background: $ink;
+  background: linear-gradient(120deg, #ff8a65 0%, #ff7a59 45%, #ffa26b 100%);
   color: $card;
   border-radius: $radius-lg;
   padding: 36rpx 40rpx;
@@ -113,7 +113,7 @@ const call = () => uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
 }
 .vc-level {
   font-size: 24rpx;
-  color: #d9c3a5;
+  color: #fff;
 }
 .vc-stats {
   margin-top: 28rpx;
@@ -127,12 +127,12 @@ const call = () => uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
 }
 .stat .lab {
   font-size: 22rpx;
-  color: #b9b1a6;
+  color: rgba(255, 255, 255, 0.85);
 }
 .vc-btn {
   margin-left: auto;
-  background: $card;
-  color: $ink;
+  background: #fff;
+  color: $primary-dark;
 }
 .menu {
   margin-top: 24rpx;
@@ -145,7 +145,7 @@ const call = () => uni.makePhoneCall({ phoneNumber: STORE.phone, fail() {} })
   height: 104rpx;
   font-size: 28rpx;
   & + .m-row {
-    border-top: 1rpx solid #e6dfd2;
+    border-top: 1rpx solid #edf1f3;
   }
   .arrow {
     color: $ink-3;

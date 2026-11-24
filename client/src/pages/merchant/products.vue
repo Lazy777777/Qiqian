@@ -15,7 +15,7 @@
     </scroll-view>
 
     <view v-for="p in list" :key="p.id" :class="['item card', !p.onSale && 'off']">
-      <image class="img" :src="imgUrl(p.image)" mode="aspectFill" />
+      <image class="img" :src="imgUrl(p.image)" mode="aspectFit" />
       <view class="info">
         <view class="name">{{ p.name }}</view>
         <view class="meta">{{ catName(p.categoryId) }} · 库存 {{ p.stock }} · 销量 {{ p.sales }}</view>
@@ -23,7 +23,7 @@
           <text class="price">¥{{ money(p.price) }}<text class="unit">/{{ p.unit }}</text></text>
           <view class="sale">
             <text>{{ p.onSale ? '在售' : '已下架' }}</text>
-            <switch :checked="p.onSale" color="#141210" style="transform: scale(0.7)" @change="toggleSale(p)" />
+            <switch :checked="p.onSale" color="#ff7a59" style="transform: scale(0.7)" @change="toggleSale(p)" />
           </view>
         </view>
         <view class="ops">
@@ -75,7 +75,7 @@ function remove(p) {
   uni.showModal({
     title: '删除商品',
     content: `确定删除「${p.name}」吗？`,
-    confirmColor: '#c0583c',
+    confirmColor: '#f0564a',
     success: async (r) => {
       if (!r.confirm) return
       await api.del(`/api/merchant/products/${p.id}`, { merchant: true })
@@ -131,7 +131,7 @@ function removeCategory(c) {
   font-size: 24rpx;
   color: $ink-2;
   &.on {
-    background: $ink;
+    background: $primary;
     color: #fff;
   }
   &.add {
