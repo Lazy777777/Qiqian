@@ -51,6 +51,10 @@ server/   Node + Express 后端
   uploads/            商品图片（已 gitignore）
 ```
 
+## 免安装静态演示
+
+`demo/index.html` 是零依赖的单文件演示版（图片在 `demo/assets/`），双击用浏览器打开即可，不需要后端、npm 或构建。数据保存在浏览器 localStorage 里，「我的 → 重置演示数据」可恢复初始商品。商家端从「我的 → 商家入口」进入，密码 `admin123`。
+
 ## 本地运行
 
 需要 Node.js 18+（开发时使用 Node 22）。

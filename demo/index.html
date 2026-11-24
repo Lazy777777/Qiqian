@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>课余时光 · 静态演示</title>
+<link rel="icon" href="assets/logo.png" />
+<style>
+:root {
+  --primary: #ff7a59; --primary-dark: #f0603d; --primary-light: #fff0eb;
+  --mint: #2ec4a0; --mint-dark: #1f9e80; --mint-light: #e3f7f0;
+  --blue: #4aa8e8; --blue-light: #e5f3fd;
+  --bg: #f3f9f7; --card: #fff; --card-2: #eef4f6;
+  --ink: #1f2a37; --ink-2: #5b6776; --ink-3: #9aa5b1; --line: #edf1f3; --danger: #f0564a;
+  --phone: 420px; --tab: 58px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body { background: #dfe9e6; color: var(--ink); font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif; }
+button, input, textarea, select { font: inherit; color: inherit; }
+img { display: block; }
+a { color: inherit; text-decoration: none; }
+#phone { position: relative; max-width: var(--phone); min-height: 100vh; margin: 0 auto; background: var(--bg); box-shadow: 0 0 40px rgba(31, 42, 55, .12); }
+#view { padding-bottom: 24px; }
+#phone.has-tab #view { padding-bottom: calc(var(--tab) + 24px); }
+.fixed-w { position: fixed; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--phone); }
+
+/* 顶栏 / 底栏 */
+.nav { position: sticky; top: 0; z-index: 20; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--bg); font-weight: 700; font-size: 16px; }
+.nav .back { position: absolute; left: 4px; top: 0; width: 44px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; }
+#tabbar { bottom: 0; height: var(--tab); background: #fff; display: flex; border-top: 1px solid var(--line); z-index: 30; }
+#tabbar .t { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: var(--ink-3); cursor: pointer; position: relative; }
+#tabbar .t img { width: 24px; height: 24px; margin-bottom: 2px; }
+#tabbar .t.on { color: var(--primary); }
+#tabbar .badge { position: absolute; top: 4px; left: 50%; margin-left: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--danger); color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+
+/* 通用 */
+.pad { padding: 0 14px; }
+.card { background: var(--card); border-radius: 18px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 22px; border: 0; border-radius: 999px; background: var(--primary); color: #fff; font-weight: 600; font-size: 15px; cursor: pointer; white-space: nowrap; }
+.btn.small { height: 30px; padding: 0 14px; font-size: 13px; }
+.btn.ghost { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+.btn.light { background: var(--card-2); color: var(--ink); }
+.btn.mint { background: var(--mint); }
+.btn.danger { background: var(--danger); }
+.btn.block { width: 100%; }
+.btn[disabled], .btn.disabled { background: #c5cdd5 !important; color: #f4f6f8 !important; border-color: transparent !important; cursor: not-allowed; }
+.price { font-weight: 700; }
+.price .sym { font-size: .7em; margin-right: 1px; }
+.muted { color: var(--ink-3); }
+.small { font-size: 12px; }
+.title-lg { font-size: 24px; font-weight: 800; }
+.section-title { font-size: 16px; font-weight: 700; padding: 4px 2px 10px; }
+.row { display: flex; align-items: center; }
+.between { display: flex; align-items: center; justify-content: space-between; }
+.clamp2 { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.ellipsis { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.empty { padding: 60px 0 40px; text-align: center; color: var(--ink-3); }
+.empty img { width: 120px; height: 120px; margin: 0 auto 10px; }
+.tag-off { color: var(--primary-dark); border: 1px solid var(--primary); border-radius: 4px; padding: 0 4px; font-size: 11px; }
+.tag-split { color: #fff; background: var(--mint); border-radius: 4px; padding: 1px 5px; font-size: 11px; }
+.tag-spec { display: inline-block; padding: 0 6px; border-radius: 4px; background: var(--mint-light); color: var(--mint-dark); font-size: 11px; font-weight: 600; }
+.tip-box { margin: 10px 0; padding: 11px 12px; border-radius: 12px; background: var(--primary-light); color: var(--ink-2); font-size: 12px; }
+.tip-box b { color: var(--primary-dark); }
+.stepper { display: flex; align-items: center; }
+.stepper .s { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; user-select: none; }
+.stepper .minus { border: 1px solid var(--primary); }
+.stepper .plus { background: var(--primary); color: #fff; }
+.stepper .n { min-width: 26px; text-align: center; font-weight: 600; }
+.field { display: flex; align-items: center; min-height: 50px; border-top: 1px solid var(--line); }
+.field:first-child { border-top: 0; }
+.field label { width: 92px; flex-shrink: 0; font-weight: 600; }
+.field input, .field textarea, .field select { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; padding: 12px 0; font-size: 14px; }
+.field textarea { resize: vertical; min-height: 44px; }
+.form { padding: 0 14px; margin-bottom: 12px; }
+.switch { position: relative; width: 44px; height: 26px; border-radius: 13px; background: #c5cdd5; cursor: pointer; flex-shrink: 0; transition: background .2s; }
+.switch::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .2s; }
+.switch.on { background: var(--primary); }
+.switch.on::after { left: 21px; }
+.radio { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #c5cdd5; flex-shrink: 0; }
+.radio.on { border: 6px solid var(--primary); }
+.check { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #c5cdd5; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; cursor: pointer; }
+.check.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.bottom-bar { bottom: 0; z-index: 25; background: #fff; border-radius: 18px 18px 0 0; box-shadow: 0 -4px 15px rgba(31, 42, 55, .06); padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+#phone.has-tab .bottom-bar { bottom: var(--tab); }
+
+/* 首页 */
+.hero { display: flex; flex-direction: column; align-items: center; padding: 16px 0 22px; }
+.hero-bg { position: relative; width: 280px; height: 220px; display: flex; justify-content: center; }
+.blob { position: absolute; border-radius: 50%; }
+.hero-img { position: relative; width: 150px; height: 218px; object-fit: contain; }
+.brand { margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+.brand img { width: 74px; height: 72px; }
+.brand .name { font-size: 34px; font-weight: 800; letter-spacing: 4px; }
+.slogan { margin-top: 6px; font-size: 12px; color: var(--ink-2); letter-spacing: 1px; }
+.hero .btn { margin-top: 14px; width: 130px; box-shadow: 0 6px 14px rgba(255, 122, 89, .3); }
+.tiles { display: flex; gap: 10px; }
+.tile { flex: 1; padding: 12px 0; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+.tile img { width: 75px; height: 75px; padding: 9px; border-radius: 50%; object-fit: contain; }
+.tile .cn { margin-top: 7px; font-size: 15px; font-weight: 700; }
+.tile .en { font-size: 10px; color: var(--ink-3); }
+.vip { position: relative; overflow: hidden; margin-top: 12px; padding: 18px 20px; border-radius: 18px; background: linear-gradient(120deg, #ff8a65 0%, #ff7a59 45%, #ffa26b 100%); color: #fff; cursor: pointer; }
+.vip .c { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .14); }
+.vip .top { position: relative; display: flex; align-items: baseline; gap: 8px; }
+.vip .big { font-size: 40px; font-weight: 800; line-height: 1; }
+.vip .lv { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .24); }
+.vip .meta { position: relative; margin-top: 14px; display: flex; align-items: flex-end; gap: 28px; }
+.vip .num { font-size: 18px; font-weight: 700; }
+.vip .lab { font-size: 11px; opacity: .85; }
+.vip .go { margin-left: auto; height: 34px; padding: 0 16px; border-radius: 999px; background: #fff; color: var(--primary-dark); font-weight: 700; font-size: 13px; display: flex; align-items: center; }
+.hot { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.hot::-webkit-scrollbar { display: none; }
+.hot-item { flex: 0 0 118px; padding: 8px; cursor: pointer; }
+.hot-item img { width: 102px; height: 102px; border-radius: 10px; object-fit: cover; background: var(--card-2); }
+.hot-item .n { margin-top: 5px; font-size: 13px; }
+.hot-item .add { width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; text-align: center; line-height: 22px; }
+
+/* 选购 */
+.notice { margin: 4px 14px 8px; padding: 9px 12px; border-radius: 999px; background: var(--mint-light); color: var(--ink-2); font-size: 12px; display: flex; gap: 7px; align-items: center; }
+.notice b { flex-shrink: 0; padding: 2px 8px; border-radius: 999px; background: var(--mint); color: #fff; font-size: 11px; }
+.menu { display: flex; align-items: flex-start; }
+.side { position: sticky; top: 48px; width: 88px; flex-shrink: 0; max-height: calc(100vh - 48px - var(--tab)); overflow-y: auto; background: var(--card-2); border-radius: 0 16px 0 0; }
+.cat { position: relative; padding: 16px 8px; text-align: center; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+.cat.on { background: #fff; color: var(--ink); font-weight: 700; }
+.cat.on::before { content: ''; position: absolute; left: 0; top: 17px; bottom: 17px; width: 4px; border-radius: 0 4px 4px 0; background: var(--primary); }
+.cat .b { position: absolute; top: 6px; right: 6px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px; background: var(--mint); color: #fff; font-size: 10px; line-height: 15px; }
+.main { flex: 1; min-width: 0; padding: 0 12px 90px; }
+.cat-title { font-size: 14px; font-weight: 700; padding: 10px 2px 8px; }
+.item { display: flex; padding: 9px; margin-bottom: 9px; border-radius: 14px; cursor: pointer; }
+.item.off { opacity: .7; }
+.item .pic { position: relative; width: 86px; height: 86px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--card-2); }
+.item .pic img { width: 100%; height: 100%; object-fit: cover; }
+.item .pic .mask { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; line-height: 24px; text-align: center; font-size: 11px; color: #fff; background: rgba(31, 42, 55, .55); }
+.item .info { flex: 1; min-width: 0; margin-left: 10px; display: flex; flex-direction: column; }
+.item .name { font-size: 14px; font-weight: 700; line-height: 1.35; }
+.item .desc { margin-top: 2px; font-size: 11px; color: var(--ink-2); }
+.item .tags { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 10px; }
+.item .foot { margin-top: auto; padding-top: 5px; display: flex; justify-content: space-between; align-items: center; }
+.item .foot .price { font-size: 17px; }
+.unit { font-size: 11px; color: var(--ink-3); }
+.origin { margin-left: 4px; font-size: 11px; color: var(--ink-3); text-decoration: line-through; }
+.spec-btn { position: relative; height: 26px; line-height: 26px; padding: 0 10px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 12px; font-weight: 600; }
+.spec-btn i { position: absolute; top: -7px; right: -5px; min-width: 16px; height: 16px; line-height: 16px; padding: 0 4px; border-radius: 8px; background: var(--mint); font-size: 10px; font-style: normal; text-align: center; }
+.cart-bar { bottom: calc(var(--tab) + 12px); z-index: 25; padding: 0 14px; pointer-events: none; }
+.cart-bar .in { pointer-events: auto; height: 54px; border-radius: 999px; background: var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 5px 0 14px; box-shadow: 0 8px 20px rgba(31, 42, 55, .25); color: #fff; }
+.cart-bar .bag { position: relative; width: 36px; height: 36px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; margin-right: 10px; }
+.cart-bar .bag img { width: 20px; height: 20px; }
+.cart-bar .bag i { position: absolute; top: -4px; right: -5px; min-width: 17px; height: 17px; border-radius: 9px; background: var(--mint); color: #fff; font-size: 10px; text-align: center; line-height: 17px; padding: 0 4px; font-style: normal; }
+.cart-bar .total { font-size: 17px; font-weight: 700; }
+.cart-bar .tip { font-size: 10px; opacity: .85; }
+.cart-bar .go { height: 44px; line-height: 44px; padding: 0 22px; border-radius: 999px; background: #fff; color: var(--ink); font-weight: 700; cursor: pointer; }
+.cart-bar .go.disabled { background: rgba(255, 255, 255, .55); color: var(--ink-2); font-size: 13px; padding: 0 16px; cursor: not-allowed; }
+
+/* 弹层 */
+#layer .mask { position: fixed; inset: 0; z-index: 100; background: rgba(31, 42, 55, .45); display: flex; align-items: flex-end; justify-content: center; }
+#layer .mask.center { align-items: center; }
+.sheet { position: relative; width: 100%; max-width: var(--phone); max-height: 90vh; overflow-y: auto; background: #fff; border-radius: 18px 18px 0 0; padding: 14px 16px 16px; }
+.sheet .x { position: absolute; right: 14px; top: 10px; z-index: 2; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; background: rgba(255, 255, 255, .9); color: var(--ink-2); cursor: pointer; }
+.sheet .big-img { width: 100%; height: 260px; object-fit: contain; border-radius: 12px; background: var(--card-2); }
+.sheet .pname { margin-top: 10px; font-size: 17px; font-weight: 700; }
+.sheet .prow { margin-top: 6px; display: flex; align-items: baseline; gap: 5px; }
+.sheet .prow .price { font-size: 22px; color: var(--primary-dark); }
+.sheet .blk { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.sheet .lbl { font-weight: 700; margin-bottom: 7px; }
+.specs { display: flex; flex-wrap: wrap; gap: 8px; }
+.spec { padding: 7px 13px; border-radius: 999px; background: var(--card-2); border: 1px solid transparent; font-size: 13px; cursor: pointer; }
+.spec.on { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); font-weight: 600; }
+.sheet .detail { font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+.sheet .warn { color: var(--primary-dark); }
+.sheet .sfoot { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; min-height: 42px; }
+.pay-sheet { text-align: center; padding: 16px 20px 22px; }
+.pay-sheet .h { position: relative; font-weight: 600; }
+.pay-sheet .h .x2 { position: absolute; left: 0; top: -2px; color: #888; cursor: pointer; padding: 0 4px; }
+.pay-sheet .badge { font-size: 10px; color: #07c160; border: 1px solid #07c160; border-radius: 4px; padding: 0 4px; margin-left: 4px; }
+.pay-sheet .amt { font-size: 38px; font-weight: 700; margin: 12px 0 18px; }
+.pay-sheet .r { display: flex; justify-content: space-between; padding: 12px 0; border-top: 1px solid #eee; font-size: 13px; }
+.pay-sheet .ok { width: 100%; height: 46px; border: 0; border-radius: 8px; background: #07c160; color: #fff; font-size: 16px; margin-top: 14px; cursor: pointer; }
+.dialog { width: 290px; background: #fff; border-radius: 14px; overflow: hidden; text-align: center; }
+.dialog .dt { padding: 20px 18px 6px; font-weight: 700; font-size: 16px; }
+.dialog .dc { padding: 4px 18px 16px; color: var(--ink-2); font-size: 14px; }
+.dialog input { width: 100%; margin-top: 10px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; outline: 0; }
+.dialog .db { display: flex; border-top: 1px solid var(--line); }
+.dialog .db div { flex: 1; padding: 13px 0; cursor: pointer; }
+.dialog .db div + div { border-left: 1px solid var(--line); color: var(--primary-dark); font-weight: 600; }
+.action { width: 100%; max-width: var(--phone); background: var(--bg); border-radius: 14px 14px 0 0; overflow: hidden; }
+.action div { background: #fff; padding: 15px; text-align: center; border-bottom: 1px solid var(--line); cursor: pointer; }
+.action div.cancel { margin-top: 7px; border: 0; }
+#toast { position: fixed; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 200; max-width: 280px; padding: 10px 16px; border-radius: 10px; background: rgba(31, 42, 55, .85); color: #fff; font-size: 14px; text-align: center; pointer-events: none; opacity: 0; transition: opacity .2s; }
+#toast.show { opacity: 1; }
+
+/* 购物车 / 结算 / 订单 */
+.list { padding: 4px 12px; }
+.crow { display: flex; align-items: center; padding: 12px 0; }
+.crow + .crow { border-top: 1px solid var(--line); }
+.crow img { width: 72px; height: 72px; margin-left: 10px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.crow .info { flex: 1; min-width: 0; margin-left: 10px; min-height: 72px; display: flex; flex-direction: column; }
+.crow .name { font-size: 14px; font-weight: 700; line-height: 1.35; }
+.crow .desc { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
+.crow .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+.block { padding: 14px; margin-bottom: 10px; }
+.g-row { display: flex; align-items: center; padding: 6px 0; }
+.g-row img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.g-row .gn { flex: 1; margin: 0 10px; font-size: 13px; }
+.fee { display: flex; justify-content: space-between; font-size: 13px; padding-top: 8px; }
+.fee.total { margin-top: 6px; padding-top: 10px; border-top: 1px dashed #dfe6ea; font-weight: 700; }
+.fee.total .price { font-size: 18px; }
+.addr-card { display: flex; align-items: center; padding: 14px; margin-bottom: 10px; cursor: pointer; }
+.addr-card .ic { width: 36px; height: 36px; border-radius: 50%; background: var(--mint-light); color: var(--mint); font-weight: 800; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; }
+.addr-card .d { font-size: 16px; font-weight: 700; }
+.pay-row { display: flex; align-items: center; padding: 9px 0; cursor: pointer; }
+.pay-row .pi { width: 32px; height: 32px; border-radius: 9px; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.pay-row .pn { flex: 1; margin-left: 10px; }
+.tabs { display: flex; gap: 6px; padding: 4px 14px 10px; overflow-x: auto; }
+.tabs .tb { flex: 1; text-align: center; white-space: nowrap; height: 32px; line-height: 32px; padding: 0 10px; border-radius: 999px; background: var(--card-2); font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.tabs .tb.on { background: var(--primary); color: #fff; font-weight: 600; }
+.order { padding: 14px; margin-bottom: 10px; cursor: pointer; border: 1.5px solid transparent; }
+.order.fresh { border-color: var(--primary); background: #fff4ef; box-shadow: 0 6px 18px rgba(255, 122, 89, .22); }
+.st { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.oimgs { display: flex; gap: 6px; margin-top: 10px; }
+.oimgs img { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; }
+.status-head { padding: 18px 16px; margin-bottom: 10px; }
+.steps { display: flex; margin-top: 14px; }
+.steps .sp { flex: 1; text-align: center; font-size: 11px; color: var(--ink-3); position: relative; }
+.steps .sp .dot { width: 12px; height: 12px; border-radius: 50%; background: #d6dde3; margin: 0 auto 5px; position: relative; z-index: 1; }
+.steps .sp::before { content: ''; position: absolute; top: 5px; left: -50%; right: 50%; height: 2px; background: #d6dde3; }
+.steps .sp:first-child::before { display: none; }
+.steps .sp.done { color: var(--ink); font-weight: 600; }
+.steps .sp.done .dot, .steps .sp.done::before { background: var(--primary); }
+.kv { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13px; }
+.kv span:last-child { text-align: right; }
+.mrow { display: flex; justify-content: space-between; align-items: center; padding: 15px 14px; border-top: 1px solid var(--line); cursor: pointer; }
+.mrow:first-child { border-top: 0; }
+.plans { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.plan { padding: 14px; border-radius: 14px; background: #fff; border: 1.5px solid transparent; cursor: pointer; }
+.plan.on { border-color: var(--primary); background: var(--primary-light); }
+.plan .a { font-size: 20px; font-weight: 800; }
+.plan .g { font-size: 12px; color: var(--primary-dark); }
+.stats { display: flex; gap: 7px; }
+.stat { flex: 1; background: #fff; border-radius: 12px; padding: 11px 4px; text-align: center; }
+.stat .n { font-size: 17px; font-weight: 800; }
+.stat .l { font-size: 10px; color: var(--ink-2); }
+.stat.alert { background: var(--primary); color: #fff; }
+.stat.alert .l { color: #ffe1d6; }
+.new { background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; }
+.chip { font-size: 12px; background: var(--card-2); padding: 3px 7px; border-radius: 5px; }
+.call { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px; border-radius: 999px; background: var(--mint); color: #fff; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.addr-box { margin-top: 10px; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, .7); display: flex; align-items: center; gap: 8px; }
+.status-chips { display: flex; gap: 6px; margin-top: 12px; }
+.status-chips div { flex: 1; text-align: center; height: 32px; line-height: 32px; border-radius: 999px; background: var(--card-2); font-size: 12px; cursor: pointer; }
+.status-chips div.on { background: var(--primary); color: #fff; font-weight: 600; }
+.demo-note { margin: 0 14px 10px; padding: 8px 12px; border-radius: 10px; background: var(--blue-light); color: var(--ink-2); font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="phone"><div id="view"></div><div id="tabbar" class="fixed-w"></div></div>
+<div id="layer"></div>
+<div id="toast"></div>
+
+<script>
+'use strict'
+
+// ======================= 店铺信息与初始菜单 =======================
+const STORE = { name: '课余时光', slogan: '校园外卖 · 30 分钟送到宿舍', phone: '400-000-0000' }
+const MERCHANT_PASSWORD = 'admin123'
+const DELIVERY_FEE = 300
+const FREE_DELIVERY_THRESHOLD = 3900
+const RECHARGE_PLANS = [
+  { amount: 5000, bonus: 0 },
+  { amount: 10000, bonus: 1000 },
+  { amount: 20000, bonus: 3000 },
+  { amount: 50000, bonus: 10000 }
+]
+const VIP_LEVELS = [
+  { level: 0, name: '普通会员', min: 0, discount: 1, freeDelivery: false, perks: '消费积分' },
+  { level: 1, name: '银卡会员', min: 20000, discount: 1, freeDelivery: true, perks: '积分 · 免配送费' },
+  { level: 2, name: '金卡会员', min: 50000, discount: 0.95, freeDelivery: true, perks: '积分 · 免配送费 · 95折' }
+]
+const STATUS = {
+  unpaid: { t: '待付款', c: '#f0564a', d: '请尽快完成支付' },
+  pending: { t: '待接单', c: '#ff7a59', d: '商家正在确认您的订单' },
+  preparing: { t: '备货中', c: '#f2a93b', d: '商家正在为您打包商品' },
+  delivering: { t: '配送中', c: '#4aa8e8', d: '骑手正在火速赶来' },
+  completed: { t: '已完成', c: '#2fb886', d: '感谢光临，欢迎再来' },
+  refunded: { t: '已退款', c: '#8a96a3', d: '款项已退回会员余额' },
+  cancelled: { t: '已取消', c: '#8a96a3', d: '订单已取消' }
+}
+const FLOW = ['pending', 'preparing', 'delivering', 'completed']
+const NEXT_ACTION = { pending: '接单', preparing: '开始配送', delivering: '确认送达' }
+
+const CATEGORIES = [
+  { id: 'c_noodle', name: '速食泡面' },
+  { id: 'c_snack', name: '零食卤味' },
+  { id: 'c_drink', name: '饮品与饮用水' },
+  { id: 'c_paper', name: '纸品日用' },
+  { id: 'c_care', name: '女性护理' }
+]
+// 价格单位：分。pack = [整件件数, 单包单位, 单包价]；单包价未给出时按规则计算
+const P = (id, categoryId, name, price, unit, desc, image, extra = {}) => ({ id, categoryId, name, price, unit, desc, image: 'assets/products/' + image, ...extra })
+const SEED_PRODUCTS = [
+  P('p_bucket6', 'c_noodle', '大桶六连桶（备注口味）', 2990, '组', '杨掌柜大桶面 6 桶 · 冲泡即享 多种口味', 'yangzhanggui-bucket.jpg', { detail: '下单时请在订单备注里写明想要的口味。', pack: [6, '桶', 500] }),
+  P('p_suancai', 'c_noodle', '大桶杨掌柜酸菜牛肉味（单点不送）', 500, '桶', '杨掌柜大桶 · 酸菜牛肉味', 'yangzhanggui-bucket.jpg', { originalPrice: 590 }),
+  P('p_jintang', 'c_noodle', '大桶杨掌柜金汤肥牛（单点不送）', 500, '桶', '杨掌柜大桶 · 金汤肥牛味', 'yangzhanggui-bucket.jpg', { originalPrice: 590 }),
+  P('p_maodu', 'c_snack', '一把鼻涕一把泪缺牙齿素毛肚', 1580, '盒', '缺牙齿 · 湖南特产 麻辣素毛肚', 'queyachi-maodu.jpg', { pack: [20, '包', 100] }),
+  P('p_yazhua', 'c_snack', '客家功夫鸭爪3重口味5个（单不）', 990, '组', '客家功夫泡鸭爪 · 清香 / 香辣 / 泡椒', 'kejia-yazhua.jpg', { pack: [5, '个'] }),
+  P('p_labaicai', 'c_snack', '咔吡咔吡辣白菜20包', 1580, '袋', '辣白菜味调味面制品 · 够麻够辣', 'labaicai.jpg', { pack: [20, '包'] }),
+  P('p_yabo', 'c_snack', '好味屋劲卤鸭脖5根（单点不送）', 990, '组', '好味屋劲卤 · 黑鸭味 / 香辣味', 'haoweiwu-yabo.jpg', { pack: [5, '根'] }),
+  P('p_doubendou', 'c_drink', '豆本豆六盒（单点不送）', 990, '组', '唯甄原味豆奶 250ml×6盒', 'doubendou.jpg', { pack: [6, '盒'] }),
+  P('p_lanbiao', 'c_drink', '今麦郎蓝标水24瓶', 1400, '箱', '蓝标纯净软水 · 24 瓶整箱', 'lanbiao-water.jpg', { pack: [24, '瓶'] }),
+  P('p_nongfu', 'c_drink', '农夫山泉1.5升大水', 300, '瓶', '农夫山泉饮用天然水 1.5L', 'nongfu-1-5l.jpg'),
+  P('p_nongfu12', 'c_drink', '农夫山泉1.5升大水12瓶', 3300, '箱', '农夫山泉饮用天然水 1.5L×12瓶', 'nongfu-1-5l-12.jpg', { pack: [12, '瓶', 300] }),
+  P('p_nongfu24', 'c_drink', 'Nongfu Spring24瓶', 1700, '箱', '农夫山泉饮用天然水 24 瓶整箱', 'nongfu-24.jpg', { pack: [24, '瓶'], stock: 0 }),
+  P('p_runtian', 'c_drink', '一件24瓶润田王', 1750, '件', '润田饮用水 24 瓶整件', 'runtian-24.jpg', { pack: [24, '瓶'] }),
+  P('p_qingfeng', 'c_paper', '清风大抽纸', 990, '提', '清风丝柔亲肤 · 悬挂式抽纸', 'qingfeng-tissue.jpg', { originalPrice: 1290 }),
+  P('p_care_ask', 'c_care', '3日用+1迷你+1夜用+1安睡裤', 4780, '组', '自由点卫生巾组合装', 'ziyoudian-anshuiku.jpg', { detail: '自由点：3包日用➕一包夜用➕一包迷你➕一包安睡裤' }),
+  P('p_care_long', 'c_care', '3日用+1夜用+1迷你+1加长', 4780, '组', '自由点卫生巾组合装', 'ziyoudian-la88.jpg', { detail: '自由点卫生巾: 三包日用，一包夜用，一包加长，一包迷你' }),
+  P('p_anshuiku', 'c_care', '3片安睡裤M-L码（单点不送）', 990, '包', '自由点安睡裤 M-L 码 · 3 片装', 'ziyoudian-anshuiku.jpg'),
+  P('p_day240', 'c_care', '3连包24片240mm日用自由点', 2970, '组', '自由点益生菌卫生巾 · 240mm 日用', 'ziyoudian-la88.jpg', { detail: '三包组合，不能拆开' }),
+  P('p_night280', 'c_care', '8片280夜用（单点不送）', 990, '包', '自由点益生菌卫生巾 · 280mm 夜用', 'ziyoudian-280.jpg'),
+  P('p_night430', 'c_care', '4+2片430夜用要（单点不送）', 990, '包', '自由点益生菌夜用 · 430mm', 'ziyoudian-430.jpg'),
+  P('p_mini190', 'c_care', '迷你190mm卫生巾（单点不送）', 890, '包', '自由点益生菌卫生巾 · 190mm 迷你', 'ziyoudian-la88.jpg')
+]
+
+// 拆包定价规则：整件价 ÷ 件数，不到 1 元按 1 元/包，超过 1 元按 2 元/包
+function ruleSinglePrice(price, packCount) {
+  if (!(packCount > 1) || !(price > 0)) return null
+  return price / packCount <= 100 ? 100 : 200
+}
+
+function freshDb() {
+  return {
+    categories: CATEGORIES.map((c) => ({ ...c })),
+    products: SEED_PRODUCTS.map((p) => {
+      const [packCount, singleUnit, singlePrice] = p.pack || [0, '包']
+      return {
+        id: p.id, categoryId: p.categoryId, name: p.name, desc: p.desc, detail: p.detail || '',
+        price: p.price, originalPrice: p.originalPrice || null, unit: p.unit, image: p.image,
+        packCount, singleUnit, singlePrice: p.pack ? singlePrice || ruleSinglePrice(p.price, packCount) : null,
+        looseStock: 0, stock: p.stock ?? 99, onSale: true, sales: 0
+      }
+    }),
+    settings: { minOrderAmount: 1500 },
+    user: { nickname: '课余会员001', balance: 0, points: 0, totalRecharge: 0 },
+    addresses: [],
+    orders: [],
+    balanceLogs: [],
+    cart: [],
+    merchantLoggedIn: false
+  }
+}
+
+// ======================= 存储 =======================
+const KEY = 'keyu-shiguang-demo-v1'
+let db = load()
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY))
+    if (d && d.products) return d
+  } catch (e) {}
+  return freshDb()
+}
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(db))
+  } catch (e) {
+    toast('浏览器存储空间不足，图片请换小一点')
+  }
+}
+// 同一台电脑另开一个窗口当商家端时，订单实时同步
+window.addEventListener('storage', (e) => {
+  if (e.key === KEY) {
+    db = load()
+    render()
+  }
+})
+
+// ======================= 工具函数 =======================
+const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+const yuan = (f) => { const v = (Number(f) || 0) / 100; return Number.isInteger(v) ? String(v) : v.toFixed(2) }
+const money = (f) => ((Number(f) || 0) / 100).toFixed(2)
+const pad = (n) => String(n).padStart(2, '0')
+const dateTime = (ts) => { if (!ts) return ''; const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}` }
+const shortTime = (ts) => { const d = new Date(ts); return d.toDateString() === new Date().toDateString() ? `今天 ${pad(d.getHours())}:${pad(d.getMinutes())}` : `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}` }
+const discountText = (p) => (p.originalPrice && p.originalPrice > p.price ? `${Math.round((p.price / p.originalPrice) * 100) / 10}折` : '')
+const lineName = (l) => (l.specName ? `${l.name} · ${l.specName}` : l.name)
+const product = (id) => db.products.find((p) => p.id === id)
+const vipOf = () => [...VIP_LEVELS].reverse().find((v) => db.user.totalRecharge >= v.min)
+const nextVip = () => VIP_LEVELS.find((v) => v.min > db.user.totalRecharge)
+function orderNo() {
+  const d = new Date()
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`
+}
+function addBalanceLog(change, remark) {
+  db.user.balance += change
+  db.balanceLogs.unshift({ id: uid('bl'), change, balance: db.user.balance, remark, at: Date.now() })
+}
+
+// ======================= 规格与库存 =======================
+const splittable = (p) => p.packCount > 1 && p.singlePrice > 0
+function specsOf(p) {
+  if (!splittable(p)) return []
+  const u = p.singleUnit || '包'
+  return [
+    { id: 'whole', name: `整件（${p.packCount}${u}）`, price: p.price, unit: p.unit },
+    { id: 'single', name: `单${u}`, price: p.singlePrice, unit: u }
+  ]
+}
+function specOf(p, id) {
+  if (!splittable(p)) return id && id !== 'whole' ? null : { id: 'whole', name: '', price: p.price, unit: p.unit }
+  return specsOf(p).find((s) => s.id === (id || 'whole')) || null
+}
+// 单包可售数 = 整件库存 × 件数 + 已拆开的散包
+const singleAvailable = (p) => p.stock * p.packCount + (p.looseStock || 0)
+const soldOut = (p) => p.stock <= 0 && !(p.looseStock > 0)
+function stockOk(p, whole, single) {
+  if (whole > p.stock) return false
+  return !single || whole * p.packCount + single <= singleAvailable(p)
+}
+function consume(p, spec, qty) {
+  if (spec !== 'single') { p.stock = Math.max(0, p.stock - qty); return }
+  let loose = p.looseStock || 0
+  if (loose < qty) {
+    const open = Math.ceil((qty - loose) / p.packCount)
+    p.stock = Math.max(0, p.stock - open)
+    loose += open * p.packCount
+  }
+  p.looseStock = loose - qty
+}
+function restore(p, spec, qty) {
+  if (spec === 'single') p.looseStock = (p.looseStock || 0) + qty
+  else p.stock += qty
+}
+
+// ======================= 购物车 =======================
+function cleanCart() {
+  db.cart = db.cart.filter((c) => { const p = product(c.productId); return p && p.onSale && specOf(p, c.spec) })
+}
+function cartLines(onlyChecked) {
+  cleanCart()
+  return db.cart.filter((c) => !onlyChecked || c.checked).map((c) => {
+    const p = product(c.productId)
+    const s = specOf(p, c.spec)
+    return { ...c, name: p.name, desc: p.desc, image: p.image, price: s.price, unit: s.unit, specName: s.name }
+  })
+}
+const cartCount = () => db.cart.reduce((s, c) => s + c.qty, 0)
+const cartTotal = () => cartLines(true).reduce((s, l) => s + l.price * l.qty, 0)
+const shortOfMin = (amount = cartTotal()) => Math.max(0, db.settings.minOrderAmount - amount)
+const qtyOf = (pid, spec) => db.cart.filter((c) => c.productId === pid && (!spec || c.spec === spec)).reduce((s, c) => s + c.qty, 0)
+function canAdd(p, spec) {
+  const whole = qtyOf(p.id, 'whole') + (spec === 'whole' ? 1 : 0)
+  const single = qtyOf(p.id, 'single') + (spec === 'single' ? 1 : 0)
+  return stockOk(p, whole, single)
+}
+function addToCart(pid, spec, delta) {
+  const p = product(pid)
+  if (delta > 0 && !canAdd(p, spec)) return toast('库存不足')
+  const key = pid + ':' + spec
+  const c = db.cart.find((x) => x.key === key)
+  if (c) {
+    c.qty += delta
+    if (c.qty <= 0) db.cart.splice(db.cart.indexOf(c), 1)
+  } else if (delta > 0) {
+    db.cart.push({ key, productId: pid, spec, qty: delta, checked: true })
+  }
+  save()
+  render()
+}
+
+// ======================= 下单 / 支付 / 退款 =======================
+function priceOrder(items) {
+  const agg = {}
+  const lines = items.map((it) => {
+    const p = product(it.productId)
+    if (!p || !p.onSale) throw new Error('部分商品已下架，请刷新后重试')
+    const s = specOf(p, it.spec)
+    if (!s) throw new Error(`${p.name} 的规格已调整，请重新选择`)
+    const a = (agg[p.id] = agg[p.id] || { p, whole: 0, single: 0 })
+    a[s.id] += it.qty
+    return { productId: p.id, spec: s.id, specName: s.name, name: p.name, price: s.price, unit: s.unit, image: p.image, qty: it.qty }
+  })
+  if (!lines.length) throw new Error('购物车是空的')
+  for (const a of Object.values(agg)) if (!stockOk(a.p, a.whole, a.single)) throw new Error(`${a.p.name} 库存不足`)
+  const vip = vipOf()
+  const goodsAmount = lines.reduce((s, l) => s + l.price * l.qty, 0)
+  const discount = Math.round(goodsAmount * (1 - vip.discount))
+  const deliveryFee = vip.freeDelivery || goodsAmount >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE
+  return { lines, goodsAmount, discount, deliveryFee, payAmount: goodsAmount - discount + deliveryFee, shortOfMin: shortOfMin(goodsAmount), vip }
+}
+function setStatus(o, status) {
+  o.status = status
+  o.updatedAt = Date.now()
+  o.timeline.push({ status, at: o.updatedAt })
+}
+function markPaid(o, method) {
+  for (const l of o.items) {
+    const p = product(l.productId)
+    if (p) { consume(p, l.spec, l.qty); p.sales += l.qty }
+  }
+  db.user.points += Math.floor(o.payAmount / 100)
+  o.payMethod = method
+  o.paidAt = Date.now()
+  o.merchantSeen = false
+  setStatus(o, 'pending')
+}
+function payOrder(o, method, done) {
+  if (method === 'balance') {
+    if (db.user.balance < o.payAmount) return toast('余额不足，请充值或选择微信支付')
+    addBalanceLog(-o.payAmount, `订单 ${o.orderNo}`)
+    markPaid(o, 'balance')
+    save()
+    toast('支付成功')
+    return done(true)
+  }
+  mockWechatPay(o.payAmount, `订单 ${o.orderNo}`, () => {
+    markPaid(o, 'wechat')
+    save()
+    toast('支付成功')
+    done(true)
+  }, () => done(false))
+}
+function refund(o, reason) {
+  addBalanceLog(o.payAmount, `订单 ${o.orderNo} 退款`)
+  db.user.points = Math.max(0, db.user.points - Math.floor(o.payAmount / 100))
+  for (const l of o.items) { const p = product(l.productId); if (p) restore(p, l.spec, l.qty) }
+  o.refundReason = reason || '商家退款'
+  o.refundedAt = Date.now()
+  o.merchantSeen = true
+  setStatus(o, 'refunded')
+  save()
+}
+
+// ======================= 路由 =======================
+const TABS = [
+  { name: 'home', text: '首页', icon: 'home' },
+  { name: 'menu', text: '选购', icon: 'menu' },
+  { name: 'cart', text: '购物车', icon: 'cart' },
+  { name: 'orders', text: '订单', icon: 'order' },
+  { name: 'mine', text: '我的', icon: 'mine' }
+]
+const TITLES = {
+  checkout: '确认订单', addresses: '收货地址', 'address-edit': '编辑地址', order: '订单详情', vip: '会员卡',
+  'm-login': '商家登录', 'm-orders': '商家后台 · 订单', 'm-order': '订单详情', 'm-products': '商品管理', 'm-product': '编辑商品', 'm-settings': '店铺设置'
+}
+let stack = [{ name: 'home' }]
+const ui = { menuCat: 'c_noodle', cartEdit: false, orderTab: 'all', mTab: 'pending', mCat: 'all', payMethod: '', remark: '', addressId: '', plan: 1, draft: null }
+let modal = null
+const cur = () => stack[stack.length - 1]
+function go(name, params = {}) { stack.push({ name, ...params }); render(true) }
+function back() { if (stack.length > 1) stack.pop(); render(true) }
+function tab(name) { stack = [{ name }]; render(true) }
+function replace(name, params = {}) { stack[stack.length - 1] = { name, ...params }; render(true) }
+
+// ======================= 页面 =======================
+const PAGES = {}
+
+PAGES.home = () => {
+  const u = db.user
+  const hot = db.products.filter((p) => p.onSale && !soldOut(p)).sort((a, b) => b.sales - a.sales).slice(0, 6)
+  return `
+  <div class="pad">
+    <div class="hero">
+      <div class="hero-bg">
+        <div class="blob" style="width:190px;height:190px;left:45px;top:20px;background:var(--mint-light)"></div>
+        <div class="blob" style="width:70px;height:70px;right:10px;top:5px;background:var(--blue-light)"></div>
+        <div class="blob" style="width:45px;height:45px;left:20px;bottom:20px;background:var(--primary-light)"></div>
+        <img class="hero-img" src="assets/illus/girl.png" alt="" />
+      </div>
+      <div class="brand"><img src="assets/logo.png" alt="课余时光" /><div class="name">${STORE.name}</div></div>
+      <div class="slogan">${STORE.slogan}</div>
+      <button class="btn" data-a="toMenu">立即点单</button>
+    </div>
+    <div class="tiles">
+      <div class="tile card" data-a="toMenu" data-cat="c_noodle"><img src="assets/illus/noodle.png" style="background:var(--primary-light)" /><div class="cn">速食泡面</div><div class="en">Instant Food</div></div>
+      <div class="tile card" data-a="toMenu" data-cat="c_paper"><img src="assets/illus/tissue.png" style="background:var(--mint-light)" /><div class="cn">纸品日用</div><div class="en">Daily Goods</div></div>
+      <div class="tile card" data-a="toMenu" data-cat="c_drink"><img src="assets/illus/water.png" style="background:var(--blue-light)" /><div class="cn">饮品饮用水</div><div class="en">Drinks</div></div>
+    </div>
+    <div class="vip" data-a="go" data-to="vip">
+      <div class="c" style="width:130px;height:130px;right:-30px;top:-40px"></div>
+      <div class="c" style="width:80px;height:80px;right:80px;bottom:-45px"></div>
+      <div class="top"><div class="big">VIP</div><div class="lv">${vipOf().name}</div></div>
+      <div class="meta">
+        <div><div class="num">¥${money(u.balance)}</div><div class="lab">余额</div></div>
+        <div><div class="num">${u.points}</div><div class="lab">积分</div></div>
+        <div class="go">点击充值</div>
+      </div>
+    </div>
+    <div class="between" style="margin-top:18px"><div class="section-title">本周热卖</div><span class="muted small" data-a="toMenu">全部商品 ›</span></div>
+    <div class="hot">
+      ${hot.map((p) => `
+        <div class="hot-item card" data-a="sheet" data-id="${p.id}">
+          <img src="${esc(p.image)}" alt="" />
+          <div class="n ellipsis">${esc(p.name)}</div>
+          <div class="between" style="margin-top:3px"><span class="price"><span class="sym">¥</span>${yuan(p.price)}</span><span class="add">＋</span></div>
+        </div>`).join('')}
+    </div>
+  </div>`
+}
+
+PAGES.menu = () => {
+  const list = db.products.filter((p) => p.onSale && p.categoryId === ui.menuCat)
+  const counts = {}
+  for (const c of db.cart) { const p = product(c.productId); if (p) counts[p.categoryId] = (counts[p.categoryId] || 0) + c.qty }
+  const total = cartTotal()
+  const short = shortOfMin(total)
+  const gap = FREE_DELIVERY_THRESHOLD - total
+  return `
+  <div class="nav">选购</div>
+  <div class="notice"><b>外卖配送</b><span>满 ¥${yuan(db.settings.minOrderAmount)} 起送 · 满 ¥${yuan(FREE_DELIVERY_THRESHOLD)} 免配送费</span></div>
+  <div class="menu">
+    <div class="side">
+      ${db.categories.map((c) => `<div class="cat ${c.id === ui.menuCat ? 'on' : ''}" data-a="cat" data-id="${c.id}">${esc(c.name)}${counts[c.id] ? `<span class="b">${counts[c.id]}</span>` : ''}</div>`).join('')}
+    </div>
+    <div class="main">
+      <div class="cat-title">${esc((db.categories.find((c) => c.id === ui.menuCat) || {}).name || '')}</div>
+      ${list.map((p) => {
+        const split = splittable(p)
+        const out = soldOut(p)
+        return `
+        <div class="item card ${out ? 'off' : ''}" data-a="sheet" data-id="${p.id}">
+          <div class="pic"><img src="${esc(p.image)}" alt="" />${out ? '<div class="mask">已售罄</div>' : ''}</div>
+          <div class="info">
+            <div class="name clamp2">${esc(p.name)}</div>
+            <div class="desc ellipsis">${esc(p.desc)}</div>
+            <div class="tags">
+              ${discountText(p) ? `<span class="tag-off">${discountText(p)}</span>` : ''}
+              ${split ? `<span class="tag-split">可拆 ¥${yuan(p.singlePrice)}/${esc(p.singleUnit)}</span>` : ''}
+              ${p.sales ? `<span class="muted">月售 ${p.sales}</span>` : ''}
+            </div>
+            <div class="foot">
+              <div><span class="price"><span class="sym">¥</span>${yuan(p.price)}</span><span class="unit">/${esc(p.unit)}</span>${p.originalPrice ? `<span class="origin">¥${yuan(p.originalPrice)}</span>` : ''}</div>
+              ${out ? '<span class="muted small">已售罄</span>' : split
+                ? `<div class="spec-btn" data-a="sheet" data-id="${p.id}">选规格${qtyOf(p.id) ? `<i>${qtyOf(p.id)}</i>` : ''}</div>`
+                : stepper(qtyOf(p.id), `data-id="${p.id}" data-spec="whole"`)}
+            </div>
+          </div>
+        </div>`
+      }).join('') || '<div class="empty">该分类暂无商品</div>'}
+    </div>
+  </div>
+  ${cartCount() ? `
+  <div class="cart-bar fixed-w"><div class="in">
+    <div class="row" data-a="tab" data-to="cart" style="cursor:pointer">
+      <div class="bag"><img src="assets/tab/cart-active.png" alt="" /><i>${cartCount()}</i></div>
+      <div><div class="total">¥${money(total)}</div><div class="tip">${short > 0 ? `满 ¥${yuan(db.settings.minOrderAmount)} 起送` : gap > 0 ? `再买 ¥${yuan(gap)} 免配送费` : '已免配送费'}</div></div>
+    </div>
+    ${short > 0 ? `<div class="go disabled">差 ¥${yuan(short)} 起送</div>` : '<div class="go" data-a="checkout">去结算</div>'}
+  </div></div>` : ''}`
+}
+
+function stepper(n, attrs) {
+  return `<div class="stepper">${n > 0 ? `<div class="s minus" data-a="qty" data-d="-1" ${attrs}>－</div><span class="n">${n}</span>` : ''}<div class="s plus" data-a="qty" data-d="1" ${attrs}>＋</div></div>`
+}
+
+PAGES.cart = () => {
+  const lines = cartLines()
+  if (!lines.length) return `<div class="nav">购物车</div><div class="empty"><img src="assets/illus/tissue.png" alt="" />购物袋空空如也，去挑点好物吧<br /><br /><button class="btn" data-a="tab" data-to="menu">去选购</button></div>`
+  const checked = lines.filter((l) => l.checked)
+  const allChecked = lines.every((l) => l.checked)
+  const total = cartTotal()
+  const short = shortOfMin(total)
+  return `
+  <div class="nav">购物车</div>
+  <div class="pad">
+    <div class="between" style="padding:2px 4px 12px;align-items:flex-end">
+      <div><div class="title-lg">购物袋</div><div class="muted small">共 ${cartCount()} 件商品 · 外卖配送</div></div>
+      <span data-a="cartEdit" style="cursor:pointer">${ui.cartEdit ? '完成' : '管理'}</span>
+    </div>
+    <div class="list card">
+      ${lines.map((l) => `
+      <div class="crow">
+        <div class="check ${l.checked ? 'on' : ''}" data-a="check" data-key="${l.key}">${l.checked ? '✓' : ''}</div>
+        <img src="${esc(l.image)}" alt="" />
+        <div class="info">
+          <div class="name clamp2">${esc(l.name)}</div>
+          <div class="desc ellipsis">${l.specName ? `<span class="tag-spec">${esc(l.specName)}</span> ` : ''}${esc(l.desc)}</div>
+          <div class="foot"><div><span class="price"><span class="sym">¥</span>${yuan(l.price)}</span><span class="unit">/${esc(l.unit)}</span></div>${stepper(l.qty, `data-id="${l.productId}" data-spec="${l.spec}"`)}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+    ${checked.length && short > 0 ? `<div class="tip-box between"><span>商品金额满 ¥${yuan(db.settings.minOrderAmount)} 起送，还差 <b>¥${yuan(short)}</b></span><b style="cursor:pointer" data-a="tab" data-to="menu">去凑单 ›</b></div>` : ''}
+    <div class="card block small" style="margin-top:10px;color:var(--ink-2)"><b style="color:var(--ink)">配送说明</b>　商品满 ¥${yuan(db.settings.minOrderAmount)} 起送；配送费 ¥${yuan(DELIVERY_FEE)}，满 ¥${yuan(FREE_DELIVERY_THRESHOLD)} 免配送费；银卡及以上会员免配送费</div>
+    <div style="height:70px"></div>
+  </div>
+  <div class="bottom-bar fixed-w">
+    <div class="row" data-a="checkAll" style="gap:6px;cursor:pointer"><div class="check ${allChecked ? 'on' : ''}">${allChecked ? '✓' : ''}</div>全选</div>
+    ${ui.cartEdit
+      ? '<button class="btn danger" style="margin-left:auto" data-a="removeChecked">删除所选</button>'
+      : `<div style="flex:1;text-align:right" class="small"><span class="muted">合计 </span><span class="price" style="font-size:20px"><span class="sym">¥</span>${money(total)}</span></div>
+         ${!checked.length ? '<button class="btn" disabled>去结算</button>' : short > 0 ? `<button class="btn" disabled>还差 ¥${yuan(short)} 起送</button>` : '<button class="btn" data-a="checkout">去结算</button>'}`}
+  </div>`
+}
+
+PAGES.checkout = () => {
+  const lines = cartLines(true)
+  if (!lines.length) return '<div class="empty">没有选中的商品</div>'
+  let pr
+  try { pr = priceOrder(lines) } catch (e) { return `<div class="empty">${esc(e.message)}</div>` }
+  const addr = db.addresses.find((a) => a.id === ui.addressId) || db.addresses.find((a) => a.isDefault) || db.addresses[0]
+  const needFlavor = lines.some((l) => /备注/.test(l.name))
+  const bal = db.user.balance
+  if (!ui.payMethod) ui.payMethod = bal >= pr.payAmount ? 'balance' : 'wechat'
+  return `
+  <div class="pad">
+    <div class="addr-card card" data-a="go" data-to="addresses" data-select="1">
+      <div class="ic">送</div>
+      ${addr ? `<div style="flex:1"><div class="small" style="color:var(--mint);font-weight:600">配送至</div><div class="d">${esc(addr.region)} ${esc(addr.detail)}</div><div class="muted">${esc(addr.name)} ${esc(addr.phone)}</div></div>` : '<div style="flex:1" class="d">＋ 添加收货地址</div>'}
+      <span class="muted" style="font-size:20px">›</span>
+    </div>
+    <div class="card block">
+      <div class="section-title" style="padding-bottom:6px">商品清单</div>
+      ${pr.lines.map((l) => `<div class="g-row"><img src="${esc(l.image)}" alt="" /><div class="gn">${esc(lineName(l))}<span class="muted"> ×${l.qty}</span></div><b>¥${money(l.price * l.qty)}</b></div>`).join('')}
+      <div class="fee"><span class="muted">商品金额</span><span>¥${money(pr.goodsAmount)}</span></div>
+      ${pr.discount ? `<div class="fee"><span class="muted">会员折扣（${pr.vip.name}）</span><span style="color:var(--danger)">-¥${money(pr.discount)}</span></div>` : ''}
+      <div class="fee"><span class="muted">配送费</span><span>${pr.deliveryFee ? '¥' + money(pr.deliveryFee) : '免配送费'}</span></div>
+      <div class="fee total"><span>实付</span><span class="price"><span class="sym">¥</span>${money(pr.payAmount)}</span></div>
+    </div>
+    ${pr.shortOfMin > 0 ? `<div class="tip-box">商品金额满 ¥${yuan(db.settings.minOrderAmount)} 起送，还差 <b>¥${yuan(pr.shortOfMin)}</b>，请返回继续选购</div>` : ''}
+    <div class="card block">
+      <div class="between"><b>订单备注</b>${needFlavor ? '<span class="small" style="color:var(--primary-dark)">有商品需要备注口味</span>' : ''}</div>
+      <textarea id="remark" data-model="remark" maxlength="100" rows="2" style="width:100%;border:0;outline:0;resize:none;margin-top:8px;background:transparent" placeholder="${needFlavor ? '请写明口味，如：六连桶要 2 酸菜牛肉 + 4 金汤肥牛' : '口味、送达时间等要求（选填）'}">${esc(ui.remark)}</textarea>
+    </div>
+    <div class="card block">
+      <div class="section-title" style="padding-bottom:4px">支付方式</div>
+      <div class="pay-row" data-a="method" data-m="balance">
+        <div class="pi" style="background:var(--primary)">V</div>
+        <div class="pn"><div>会员余额支付</div><div class="muted small">可用余额 ¥${money(bal)}${bal < pr.payAmount ? '<span style="color:var(--danger)"> · 余额不足</span>' : ''}</div></div>
+        ${bal < pr.payAmount ? '<span class="small" style="color:var(--primary-dark);text-decoration:underline;margin-right:10px" data-a="go" data-to="vip">去充值</span>' : ''}
+        <div class="radio ${ui.payMethod === 'balance' ? 'on' : ''}"></div>
+      </div>
+      <div class="pay-row" data-a="method" data-m="wechat">
+        <div class="pi" style="background:#07c160">￥</div>
+        <div class="pn"><div>微信支付</div><div class="muted small">模拟支付，不会真实扣款</div></div>
+        <div class="radio ${ui.payMethod === 'wechat' ? 'on' : ''}"></div>
+      </div>
+    </div>
+    <div style="height:70px"></div>
+  </div>
+  <div class="bottom-bar fixed-w">
+    <div style="flex:1"><span class="muted small">实付 </span><span class="price" style="font-size:22px"><span class="sym">¥</span>${money(pr.payAmount)}</span></div>
+    ${pr.shortOfMin > 0 ? `<button class="btn" disabled>还差 ¥${yuan(pr.shortOfMin)} 起送</button>` : '<button class="btn" data-a="submitOrder">提交订单</button>'}
+  </div>`
+}
+
+PAGES.addresses = (r) => `
+  <div class="pad">
+    ${db.addresses.length ? db.addresses.map((a) => `
+      <div class="card block" ${r.select ? `data-a="pickAddr" data-id="${a.id}" style="cursor:pointer"` : ''}>
+        <div class="between"><b style="font-size:15px">${esc(a.name)} ${esc(a.phone)}</b>${a.tag ? `<span class="tag-spec">${esc(a.tag)}</span>` : ''}</div>
+        <div style="margin-top:4px">${esc(a.region)} ${esc(a.detail)}</div>
+        <div class="between" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+          <span class="row small" data-a="defaultAddr" data-id="${a.id}" style="gap:6px;cursor:pointer"><span class="radio ${a.isDefault ? 'on' : ''}" style="width:16px;height:16px"></span>${a.isDefault ? '默认地址' : '设为默认'}</span>
+          <span class="small"><span data-a="go" data-to="address-edit" data-id="${a.id}" style="margin-right:16px;cursor:pointer">编辑</span><span data-a="delAddr" data-id="${a.id}" style="color:var(--danger);cursor:pointer">删除</span></span>
+        </div>
+      </div>`).join('') : '<div class="empty">还没有收货地址</div>'}
+    <button class="btn block" data-a="go" data-to="address-edit">＋ 新增收货地址</button>
+  </div>`
+
+PAGES['address-edit'] = (r) => {
+  const a = db.addresses.find((x) => x.id === r.id) || { name: '', phone: '', region: '', detail: '', tag: '', isDefault: !db.addresses.length }
+  if (!ui.draft || ui.draft.for !== (r.id || 'new')) ui.draft = { for: r.id || 'new', tag: a.tag, isDefault: a.isDefault }
+  return `
+  <div class="pad">
+    <div class="card form">
+      <div class="field"><label>收货人</label><input id="a-name" value="${esc(a.name)}" placeholder="请填写收货人姓名" maxlength="20" /></div>
+      <div class="field"><label>手机号</label><input id="a-phone" value="${esc(a.phone)}" placeholder="请填写 11 位手机号" maxlength="11" inputmode="numeric" /></div>
+      <div class="field"><label>所在区域</label><input id="a-region" value="${esc(a.region)}" placeholder="如：XX大学 东校区" maxlength="40" /></div>
+      <div class="field"><label>详细地址</label><input id="a-detail" value="${esc(a.detail)}" placeholder="宿舍楼、门牌号" maxlength="80" /></div>
+      <div class="field"><label>标签</label><div class="row" style="gap:8px">${['宿舍', '教学楼', '家'].map((t) => `<span class="spec ${ui.draft.tag === t ? 'on' : ''}" data-a="addrTag" data-t="${t}">${t}</span>`).join('')}</div></div>
+      <div class="field between"><label>设为默认</label><div class="switch ${ui.draft.isDefault ? 'on' : ''}" data-a="addrDefault"></div></div>
+    </div>
+    <button class="btn block" data-a="saveAddr" data-id="${r.id || ''}">保存地址</button>
+  </div>`
+}
+
+PAGES.orders = () => {
+  const tabs = [['all', '全部'], ['unpaid', '待付款'], ['doing', '进行中'], ['completed', '已完成'], ['refunded', '退款/取消']]
+  const match = (o) => ui.orderTab === 'all' || (ui.orderTab === 'doing' ? ['pending', 'preparing', 'delivering'].includes(o.status) : ui.orderTab === 'refunded' ? ['refunded', 'cancelled'].includes(o.status) : o.status === ui.orderTab)
+  const list = db.orders.filter(match).sort((a, b) => b.createdAt - a.createdAt)
+  return `
+  <div class="nav">我的订单</div>
+  <div class="tabs">${tabs.map(([k, t]) => `<div class="tb ${ui.orderTab === k ? 'on' : ''}" data-a="orderTab" data-k="${k}">${t}</div>`).join('')}</div>
+  <div class="pad">
+    ${list.map((o) => `
+      <div class="card order" data-a="go" data-to="order" data-id="${o.id}">
+        <div class="between"><b>订单 ${o.orderNo.slice(-6)}</b><span class="st" style="color:${STATUS[o.status].c};background:${STATUS[o.status].c}1f">${STATUS[o.status].t}</span></div>
+        <div class="muted small ellipsis" style="margin-top:4px">${esc(o.items.map(lineName).join('、'))}</div>
+        <div class="oimgs">${o.items.slice(0, 4).map((l) => `<img src="${esc(l.image)}" alt="" />`).join('')}</div>
+        <div class="between" style="margin-top:10px">
+          <span class="muted small">${shortTime(o.createdAt)} · 共 ${o.items.reduce((s, l) => s + l.qty, 0)} 件</span>
+          <span class="price">¥${money(o.payAmount)}</span>
+        </div>
+        ${o.status === 'unpaid' ? `<div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn small ghost" data-a="cancelOrder" data-id="${o.id}">取消</button><button class="btn small" data-a="payExisting" data-id="${o.id}">去支付</button></div>` : ''}
+      </div>`).join('') || `<div class="empty"><img src="assets/illus/noodle.png" alt="" />暂无订单</div>`}
+  </div>`
+}
+
+PAGES.order = (r) => {
+  const o = db.orders.find((x) => x.id === r.id)
+  if (!o) return '<div class="empty">订单不存在</div>'
+  const s = STATUS[o.status]
+  const idx = FLOW.indexOf(o.status)
+  return `
+  <div class="pad">
+    <div class="card status-head" style="background:linear-gradient(135deg, ${s.c}22, #fff 70%)">
+      ${r.paid ? '<div class="small" style="color:var(--mint);font-weight:700">✓ 支付成功</div>' : ''}
+      <div style="font-size:22px;font-weight:800;color:${s.c}">${s.t}</div>
+      <div class="muted small">${s.d}</div>
+      ${idx >= 0 ? `<div class="steps">${FLOW.map((k, i) => `<div class="sp ${i <= idx ? 'done' : ''}"><div class="dot"></div>${STATUS[k].t}</div>`).join('')}</div>` : ''}
+    </div>
+    <div class="card block">
+      <div class="muted small">订单号</div>
+      <div class="between"><b style="font-size:16px;letter-spacing:.5px">${o.orderNo}</b><button class="btn small light" data-a="copy" data-text="${o.orderNo}">复制</button></div>
+    </div>
+    <div class="card block">
+      <b>配送信息</b>
+      <div style="margin-top:6px;font-weight:600">${esc(o.address.region)} ${esc(o.address.detail)}</div>
+      <div class="muted">${esc(o.address.name)} ${esc(o.address.phone)}</div>
+    </div>
+    <div class="card block">
+      <b>商品</b>
+      ${o.items.map((l) => `<div class="g-row"><img src="${esc(l.image)}" alt="" /><div class="gn">${esc(lineName(l))}<span class="muted"> ×${l.qty}</span></div><span>¥${money(l.price * l.qty)}</span></div>`).join('')}
+      <div class="fee"><span class="muted">商品金额</span><span>¥${money(o.goodsAmount)}</span></div>
+      ${o.discount ? `<div class="fee"><span class="muted">会员折扣</span><span>-¥${money(o.discount)}</span></div>` : ''}
+      <div class="fee"><span class="muted">配送费</span><span>¥${money(o.deliveryFee)}</span></div>
+      <div class="fee total"><span>${o.status === 'unpaid' ? '应付' : '实付'}</span><span class="price">¥${money(o.payAmount)}</span></div>
+    </div>
+    <div class="card block">
+      <div class="kv"><span class="muted">下单时间</span><span>${dateTime(o.createdAt)}</span></div>
+      ${o.paidAt ? `<div class="kv"><span class="muted">支付方式</span><span>${o.payMethod === 'balance' ? '会员余额' : '微信支付（模拟）'}</span></div>` : ''}
+      ${o.remark ? `<div class="kv"><span class="muted">备注</span><span>${esc(o.remark)}</span></div>` : ''}
+      ${o.status === 'refunded' ? `<div class="kv"><span class="muted">退款</span><span>¥${money(o.payAmount)} 已退回余额（${esc(o.refundReason)}）</span></div>` : ''}
+    </div>
+    <div style="height:70px"></div>
+  </div>
+  <div class="bottom-bar fixed-w" style="justify-content:flex-end">
+    ${o.status === 'unpaid'
+      ? `<button class="btn ghost" data-a="cancelOrder" data-id="${o.id}">取消订单</button><button class="btn" data-a="payExisting" data-id="${o.id}">立即支付 ¥${money(o.payAmount)}</button>`
+      : `<a class="btn ghost" href="tel:${STORE.phone}">联系商家</a><button class="btn" data-a="again" data-id="${o.id}">再来一单</button>`}
+  </div>`
+}
+
+PAGES.mine = () => {
+  const u = db.user
+  const nv = nextVip()
+  return `
+  <div class="pad" style="padding-top:20px">
+    <div class="row" style="gap:12px;margin-bottom:14px">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">${esc(u.nickname.slice(-3))}</div>
+      <div><div style="font-size:18px;font-weight:800">${esc(u.nickname)}</div><div class="muted small">${vipOf().name}${nv ? ` · 再充 ¥${yuan(nv.min - u.totalRecharge)} 升级${nv.name}` : ''}</div></div>
+    </div>
+    <div class="vip" data-a="go" data-to="vip" style="margin-top:0">
+      <div class="c" style="width:130px;height:130px;right:-30px;top:-40px"></div>
+      <div class="top"><div class="big">VIP</div><div class="lv">${vipOf().name}</div></div>
+      <div class="meta"><div><div class="num">¥${money(u.balance)}</div><div class="lab">余额</div></div><div><div class="num">${u.points}</div><div class="lab">积分</div></div><div class="go">充值</div></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="mrow" data-a="tab" data-to="orders"><span>我的订单</span><span class="muted">›</span></div>
+      <div class="mrow" data-a="go" data-to="addresses"><span>收货地址</span><span class="muted">›</span></div>
+      <div class="mrow" data-a="go" data-to="vip"><span>会员卡与余额明细</span><span class="muted">›</span></div>
+      <a class="mrow" href="tel:${STORE.phone}"><span>联系商家</span><span class="muted">${STORE.phone} ›</span></a>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="mrow" data-a="go" data-to="m-login"><span>商家入口</span><span class="muted">店主登录 ›</span></div>
+      <div class="mrow" data-a="resetDemo"><span>重置演示数据</span><span class="muted">清空订单、地址、余额 ›</span></div>
+    </div>
+    <div style="text-align:center;padding:24px 0" class="muted small"><img src="assets/logo.png" alt="" style="width:76px;height:74px;margin:0 auto 4px" />${STORE.name} · 静态演示版</div>
+  </div>`
+}
+
+PAGES.vip = () => {
+  const u = db.user
+  const v = vipOf()
+  const nv = nextVip()
+  const plan = RECHARGE_PLANS[ui.plan]
+  return `
+  <div class="pad">
+    <div class="vip" style="margin-top:0;cursor:default">
+      <div class="c" style="width:130px;height:130px;right:-30px;top:-40px"></div>
+      <div class="top"><div class="big">VIP</div><div class="lv">${v.name}</div></div>
+      <div class="meta"><div><div class="num">¥${money(u.balance)}</div><div class="lab">余额</div></div><div><div class="num">${u.points}</div><div class="lab">积分</div></div><div><div class="num">¥${yuan(u.totalRecharge)}</div><div class="lab">累计充值</div></div></div>
+      <div style="position:relative;margin-top:10px;font-size:12px;opacity:.9">权益：${v.perks}${nv ? ` · 再充 ¥${yuan(nv.min - u.totalRecharge)} 升级${nv.name}` : ''}</div>
+    </div>
+    <div class="section-title" style="margin-top:16px">充值</div>
+    <div class="plans">${RECHARGE_PLANS.map((p, i) => `<div class="plan ${ui.plan === i ? 'on' : ''}" data-a="plan" data-i="${i}"><div class="a">¥${yuan(p.amount)}</div><div class="g">${p.bonus ? `送 ¥${yuan(p.bonus)}` : '　'}</div></div>`).join('')}</div>
+    <button class="btn block" style="margin-top:14px" data-a="recharge">立即充值 ¥${yuan(plan.amount)}</button>
+    <div class="section-title" style="margin-top:18px">会员等级</div>
+    <div class="card block">${VIP_LEVELS.map((l) => `<div class="kv"><span>${l.name}${l.level === v.level ? ' <span class="tag-spec">当前</span>' : ''}</span><span class="muted">累计充值 ¥${yuan(l.min)} · ${l.perks}</span></div>`).join('')}</div>
+    <div class="section-title">余额明细</div>
+    <div class="card block">${db.balanceLogs.slice(0, 30).map((l) => `<div class="kv"><span>${esc(l.remark)}<br /><span class="muted small">${dateTime(l.at)}</span></span><span style="color:${l.change > 0 ? 'var(--mint-dark)' : 'var(--ink)'};font-weight:600">${l.change > 0 ? '+' : ''}${money(l.change)}</span></div>`).join('') || '<div class="muted small">暂无记录</div>'}</div>
+  </div>`
+}
+
+// ----------------------- 商家端 -----------------------
+PAGES['m-login'] = () => `
+  <div style="padding:30px 28px;display:flex;flex-direction:column;align-items:center">
+    <img src="assets/logo.png" alt="" style="width:120px;height:116px" />
+    <div style="font-size:30px;font-weight:800;letter-spacing:2px;margin-top:6px">MERCHANT</div>
+    <div class="muted" style="margin:4px 0 26px">${STORE.name} · 商家后台</div>
+    <div class="card" style="width:100%;padding:0 16px;margin-bottom:16px"><input id="m-pwd" type="password" placeholder="请输入商家密码" style="width:100%;height:52px;border:0;outline:0;background:transparent;font-size:15px" /></div>
+    <button class="btn block" data-a="mLogin">登录</button>
+    <div class="muted small" style="margin-top:12px">演示密码 admin123</div>
+    <div class="small" style="margin-top:30px;color:var(--ink-2);text-decoration:underline;cursor:pointer" data-a="tab" data-to="home">返回用户端</div>
+  </div>`
+
+function mGuard() {
+  if (db.merchantLoggedIn) return ''
+  setTimeout(() => replace('m-login'))
+  return ' '
+}
+function paidOrders() { return db.orders.filter((o) => o.status !== 'unpaid' && o.status !== 'cancelled') }
+
+PAGES['m-orders'] = () => {
+  if (mGuard()) return ''
+  const paid = paidOrders()
+  const start = new Date(); start.setHours(0, 0, 0, 0)
+  const today = paid.filter((o) => o.paidAt >= start.getTime() && o.status !== 'refunded')
+  const newCount = paid.filter((o) => !o.merchantSeen && o.status === 'pending').length
+  const tabs = [['pending', '待接单'], ['processing', '进行中'], ['completed', '已完成'], ['refunded', '已退款'], ['all', '全部']]
+  const list = paid.filter((o) => ui.mTab === 'all' || (ui.mTab === 'processing' ? ['preparing', 'delivering'].includes(o.status) : o.status === ui.mTab))
+    .sort((a, b) => Number(a.merchantSeen) - Number(b.merchantSeen) || b.paidAt - a.paidAt)
+  return `
+  <div class="pad">
+    <div class="between" style="padding:4px 2px 12px;align-items:flex-end">
+      <div><div style="font-size:28px;font-weight:800;letter-spacing:2px;line-height:1">ORDERS</div><div class="muted small">${STORE.name} · 商家后台</div></div>
+      <div class="row" style="gap:6px"><button class="btn small light" data-a="go" data-to="m-products">商品</button><button class="btn small light" data-a="go" data-to="m-settings">设置</button><button class="btn small ghost" data-a="mLogout">退出</button></div>
+    </div>
+    <div class="stats">
+      <div class="stat ${newCount ? 'alert' : ''}"><div class="n">${newCount}</div><div class="l">新订单</div></div>
+      <div class="stat"><div class="n">${paid.filter((o) => ['preparing', 'delivering'].includes(o.status)).length}</div><div class="l">进行中</div></div>
+      <div class="stat"><div class="n">${today.length}</div><div class="l">今日单量</div></div>
+      <div class="stat"><div class="n">¥${yuan(today.reduce((s, o) => s + o.payAmount, 0))}</div><div class="l">今日营业额</div></div>
+    </div>
+  </div>
+  <div class="tabs" style="margin-top:12px">${tabs.map(([k, t]) => `<div class="tb ${ui.mTab === k ? 'on' : ''}" data-a="mTab" data-k="${k}">${t}${k === 'pending' && paid.some((o) => o.status === 'pending') ? ` ${paid.filter((o) => o.status === 'pending').length}` : ''}</div>`).join('')}</div>
+  <div class="pad">
+    ${list.map((o) => mOrderCard(o)).join('') || '<div class="empty">暂无订单</div>'}
+  </div>`
+}
+function mOrderCard(o) {
+  const next = NEXT_ACTION[o.status]
+  return `
+  <div class="card order ${!o.merchantSeen ? 'fresh' : ''}" data-a="go" data-to="m-order" data-id="${o.id}">
+    <div class="between"><div class="row" style="gap:6px">${!o.merchantSeen ? '<span class="new">NEW</span>' : ''}<b style="font-size:20px">#${o.orderNo.slice(-4)}</b></div><span class="st" style="color:${STATUS[o.status].c};background:${STATUS[o.status].c}1f">${STATUS[o.status].t}</span></div>
+    <div class="muted small">订单号 ${o.orderNo} · ${shortTime(o.paidAt)}</div>
+    <div class="row" style="flex-wrap:wrap;gap:5px;margin-top:9px">${o.items.map((l) => `<span class="chip">${esc(l.name)}${l.spec === 'single' ? ` <span class="tag-spec">拆包 · ${esc(l.specName)}</span>` : ''} ×${l.qty}</span>`).join('')}</div>
+    ${o.remark ? `<div class="small" style="color:var(--danger);margin-top:6px">备注：${esc(o.remark)}</div>` : ''}
+    <div class="addr-box">
+      <div style="flex:1;min-width:0"><b>${esc(o.address.name)}</b> <b>${esc(o.address.phone)}</b><div class="small" style="color:var(--ink-2)">${esc(o.address.region)} ${esc(o.address.detail)}</div></div>
+      <a class="call" href="tel:${esc(o.address.phone)}" data-a="noop">✆ 拨打</a>
+    </div>
+    <div class="between" style="margin-top:10px">
+      <span class="price" style="font-size:18px">¥${money(o.payAmount)} <span class="muted small" style="font-weight:400">${o.payMethod === 'balance' ? '余额' : '微信'}</span></span>
+      <div class="row" style="gap:6px">
+        ${['pending', 'preparing', 'delivering', 'completed'].includes(o.status) ? `<button class="btn small ghost" data-a="mRefund" data-id="${o.id}">退款</button>` : ''}
+        ${next ? `<button class="btn small" data-a="mNext" data-id="${o.id}">${next}</button>` : ''}
+      </div>
+    </div>
+  </div>`
+}
+
+PAGES['m-order'] = (r) => {
+  if (mGuard()) return ''
+  const o = db.orders.find((x) => x.id === r.id)
+  if (!o) return '<div class="empty">订单不存在</div>'
+  if (!o.merchantSeen) { o.merchantSeen = true; save() }
+  const next = NEXT_ACTION[o.status]
+  const editable = FLOW.includes(o.status)
+  return `
+  <div class="pad">
+    <div class="card block">
+      <div class="between"><b style="font-size:26px">#${o.orderNo.slice(-4)}</b><span class="st" style="color:${STATUS[o.status].c};background:${STATUS[o.status].c}1f">${STATUS[o.status].t}</span></div>
+      <div class="muted small">订单号 ${o.orderNo}</div>
+      ${editable ? `<div class="status-chips">${FLOW.map((k) => `<div class="${o.status === k ? 'on' : ''}" data-a="mSet" data-id="${o.id}" data-s="${k}">${STATUS[k].t}</div>`).join('')}</div>` : ''}
+    </div>
+    <div class="card block">
+      <b>收货信息</b>
+      <div class="between" style="margin-top:8px">
+        <div><div style="font-size:17px;font-weight:700">${esc(o.address.name)}</div><div style="font-size:16px">${esc(o.address.phone)}</div></div>
+        <a class="call" href="tel:${esc(o.address.phone)}">✆ 一键拨打</a>
+      </div>
+      <div style="margin-top:6px;font-weight:600">${esc(o.address.region)} ${esc(o.address.detail)}</div>
+    </div>
+    <div class="card block">
+      <b>商品（${o.items.reduce((s, l) => s + l.qty, 0)} 件）</b>
+      ${o.items.map((l) => `<div class="g-row"><img src="${esc(l.image)}" alt="" /><div class="gn">${esc(l.name)} ${l.specName ? `<span class="tag-spec" ${l.spec === 'single' ? '' : 'style="background:var(--card-2);color:var(--ink-2)"'}>${l.spec === 'single' ? '拆包 · ' : ''}${esc(l.specName)}</span>` : ''}</div><b style="margin-right:12px">×${l.qty}</b><span>¥${money(l.price * l.qty)}</span></div>`).join('')}
+      <div class="fee"><span class="muted">商品金额</span><span>¥${money(o.goodsAmount)}</span></div>
+      ${o.discount ? `<div class="fee"><span class="muted">会员折扣</span><span>-¥${money(o.discount)}</span></div>` : ''}
+      <div class="fee"><span class="muted">配送费</span><span>¥${money(o.deliveryFee)}</span></div>
+      <div class="fee total"><span>实收</span><span class="price">¥${money(o.payAmount)}</span></div>
+    </div>
+    <div class="card block">
+      <div class="kv"><span class="muted">下单时间</span><span>${dateTime(o.createdAt)}</span></div>
+      <div class="kv"><span class="muted">支付</span><span>${o.payMethod === 'balance' ? '会员余额' : '微信支付（模拟）'} · ${dateTime(o.paidAt)}</span></div>
+      ${o.remark ? `<div class="kv"><span class="muted">备注</span><span style="color:var(--danger)">${esc(o.remark)}</span></div>` : ''}
+      ${o.status === 'refunded' ? `<div class="kv"><span class="muted">退款原因</span><span>${esc(o.refundReason)}</span></div>` : ''}
+    </div>
+    <div style="height:70px"></div>
+  </div>
+  ${editable ? `<div class="bottom-bar fixed-w" style="justify-content:flex-end"><button class="btn ghost" data-a="mRefund" data-id="${o.id}">退款</button>${next ? `<button class="btn" data-a="mNext" data-id="${o.id}">${next}</button>` : ''}</div>` : ''}`
+}
+
+PAGES['m-products'] = () => {
+  if (mGuard()) return ''
+  const list = db.products.filter((p) => ui.mCat === 'all' || p.categoryId === ui.mCat)
+  const catName = (id) => (db.categories.find((c) => c.id === id) || {}).name || '未分类'
+  return `
+  <div class="tabs" style="justify-content:flex-start"><div class="tb ${ui.mCat === 'all' ? 'on' : ''}" style="flex:none" data-a="mCat" data-k="all">全部 ${db.products.length}</div>${db.categories.map((c) => `<div class="tb ${ui.mCat === c.id ? 'on' : ''}" style="flex:none" data-a="mCat" data-k="${c.id}">${esc(c.name)}</div>`).join('')}</div>
+  <div class="pad">
+    ${list.map((p) => `
+    <div class="card item" style="cursor:default;${p.onSale ? '' : 'opacity:.6'}">
+      <div class="pic"><img src="${esc(p.image)}" alt="" /></div>
+      <div class="info">
+        <div class="name clamp2">${esc(p.name)}</div>
+        <div class="muted small">${esc(catName(p.categoryId))} · 库存 ${p.stock} · 销量 ${p.sales}</div>
+        ${splittable(p) ? `<div><span class="tag-spec">可拆包：整件 ${p.packCount}${esc(p.singleUnit)} · 单${esc(p.singleUnit)} ¥${money(p.singlePrice)} · 散包 ${p.looseStock || 0}</span></div>` : ''}
+        <div class="foot">
+          <span class="price">¥${money(p.price)}<span class="unit">/${esc(p.unit)}</span></span>
+          <span class="row small" style="gap:6px">${p.onSale ? '在售' : '已下架'}<span class="switch ${p.onSale ? 'on' : ''}" data-a="mToggle" data-id="${p.id}"></span></span>
+        </div>
+        <div class="row small" style="justify-content:flex-end;gap:16px;margin-top:4px"><span data-a="go" data-to="m-product" data-id="${p.id}" style="text-decoration:underline;cursor:pointer">编辑</span><span data-a="mDel" data-id="${p.id}" style="color:var(--danger);text-decoration:underline;cursor:pointer">删除</span></div>
+      </div>
+    </div>`).join('')}
+    <div style="height:60px"></div>
+  </div>
+  <div class="bottom-bar fixed-w"><button class="btn block" data-a="go" data-to="m-product">＋ 新增商品</button></div>`
+}
+
+PAGES['m-product'] = (r) => {
+  if (mGuard()) return ''
+  const p = product(r.id) || { name: '', categoryId: ui.mCat !== 'all' ? ui.mCat : db.categories[0].id, price: 0, originalPrice: null, unit: '份', stock: 99, desc: '', detail: '', image: '', onSale: true, packCount: 0, singleUnit: '包', singlePrice: null, looseStock: 0 }
+  if (!ui.draft || ui.draft.for !== 'p:' + (r.id || 'new')) ui.draft = { for: 'p:' + (r.id || 'new'), image: p.image, onSale: p.onSale, split: splittable(p) }
+  const d = ui.draft
+  const f = (v) => (v ? (v / 100).toFixed(2) : '')
+  return `
+  <div class="pad">
+    <div class="card block" style="text-align:center">
+      ${d.image ? `<img src="${esc(d.image)}" alt="" style="width:140px;height:140px;object-fit:contain;margin:0 auto;border-radius:12px" />` : '<div style="width:140px;height:140px;margin:0 auto;border:1px dashed var(--ink-3);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--ink-2)">暂无图片</div>'}
+      <label class="btn small light" style="margin-top:10px">上传图片<input type="file" accept="image/*" id="p-file" style="display:none" /></label>
+    </div>
+    <div class="card form">
+      <div class="field"><label>商品名称</label><input id="p-name" value="${esc(p.name)}" maxlength="40" placeholder="如：咔吡咔吡辣白菜20包" /></div>
+      <div class="field"><label>分类</label><select id="p-cat">${db.categories.map((c) => `<option value="${c.id}" ${c.id === p.categoryId ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>售价（元）</label><input id="p-price" value="${f(p.price)}" inputmode="decimal" placeholder="0.00" /></div>
+      <div class="field"><label>原价（元）</label><input id="p-orig" value="${f(p.originalPrice)}" inputmode="decimal" placeholder="选填，用于划线价" /></div>
+      <div class="field"><label>单位</label><input id="p-unit" value="${esc(p.unit)}" maxlength="4" placeholder="整件单位：袋 / 箱 / 组" /></div>
+      <div class="field"><label>库存</label><input id="p-stock" value="${p.stock}" inputmode="numeric" /></div>
+      <div class="field"><label>描述</label><input id="p-desc" value="${esc(p.desc)}" maxlength="40" placeholder="规格、卖点" /></div>
+      <div class="field"><label>商品详情</label><textarea id="p-detail" maxlength="500" placeholder="选填，顾客在商品详情里可以看到">${esc(p.detail)}</textarea></div>
+      <div class="field"><label>图片地址</label><input id="p-image" value="${esc(d.image)}" placeholder="上传或填写图片地址" /></div>
+      <div class="field between"><label>上架销售</label><span class="switch ${d.onSale ? 'on' : ''}" data-a="draftToggle" data-k="onSale"></span></div>
+    </div>
+    <div class="card form">
+      <div class="field between"><label>拆包销售</label><span class="row" style="gap:8px"><span class="muted small">开启后有「整件 / 单包」两个规格</span><span class="switch ${d.split ? 'on' : ''}" data-a="draftToggle" data-k="split"></span></span></div>
+      ${d.split ? `
+      <div class="field"><label>整件件数</label><input id="p-pack" value="${p.packCount > 1 ? p.packCount : guessPack(p.name).count}" inputmode="numeric" placeholder="如 20（整件含 20 包）" /></div>
+      <div class="field"><label>单包单位</label><input id="p-sunit" value="${esc(p.packCount > 1 ? p.singleUnit : guessPack(p.name).unit)}" maxlength="2" placeholder="包 / 瓶 / 根 / 个" /></div>
+      <div class="field"><label>单包价（元）</label><input id="p-single" value="${f(p.singlePrice)}" inputmode="decimal" placeholder="0.00" /><span class="tag-spec" style="cursor:pointer;padding:4px 10px" data-a="applyRule">按规则</span></div>
+      <div class="field"><label>散包库存</label><input id="p-loose" value="${p.looseStock || 0}" inputmode="numeric" /></div>
+      <div class="muted small" style="padding:0 0 12px;line-height:1.6">规则：整件价 ÷ 件数，不到 1 元按 1 元/包，超过 1 元按 2 元/包（也可以按实际情况手动填写）。单包库存 = 整件库存 × 件数 + 散包库存。</div>` : ''}
+    </div>
+    <button class="btn block" data-a="saveProduct" data-id="${r.id || ''}">保存</button>
+  </div>`
+}
+function guessPack(name) {
+  const m = String(name).match(/(\d+)\s*(包|瓶|根|个|盒|袋|片|桶)/g)
+  if (!m) return { count: '', unit: '包' }
+  const last = m[m.length - 1].match(/(\d+)\s*(.)/)
+  return Number(last[1]) > 1 ? { count: last[1], unit: last[2] } : { count: '', unit: '包' }
+}
+
+PAGES['m-settings'] = () => {
+  if (mGuard()) return ''
+  return `
+  <div class="pad">
+    <div class="card form"><div class="field"><label>起送价（元）</label><input id="s-min" value="${yuan(db.settings.minOrderAmount)}" inputmode="decimal" /></div></div>
+    <div class="muted small" style="padding:0 4px 16px;line-height:1.6">商品金额（不含配送费、会员折扣前）达到起送价才能下单，填 0 表示不限制。</div>
+    <button class="btn block" data-a="saveSettings">保存</button>
+  </div>`
+}
+
+// ======================= 弹层 =======================
+function renderLayer() {
+  const L = document.getElementById('layer')
+  if (!modal) { L.innerHTML = ''; return }
+  if (modal.type === 'sheet') {
+    const p = product(modal.id)
+    if (!p) { modal = null; L.innerHTML = ''; return }
+    const s = specOf(p, modal.spec) || specOf(p, 'whole')
+    const n = qtyOf(p.id, s.id)
+    const out = s.id === 'single' ? singleAvailable(p) <= 0 : p.stock <= 0
+    L.innerHTML = `
+    <div class="mask" data-a="closeModal"><div class="sheet" data-a="noop">
+      <span class="x" data-a="closeModal">✕</span>
+      <img class="big-img" src="${esc(p.image)}" alt="" />
+      <div class="pname">${esc(p.name)}</div>
+      <div class="prow"><span class="price"><span class="sym">¥</span>${yuan(s.price)}</span><span class="unit">/${esc(s.unit)}</span>${s.id === 'whole' && p.originalPrice ? `<span class="origin">¥${yuan(p.originalPrice)}</span>` : ''}${s.id === 'whole' && discountText(p) ? `<span class="tag-off">${discountText(p)}</span>` : ''}</div>
+      ${splittable(p) ? `<div class="blk"><div class="lbl">规格</div><div class="specs">${specsOf(p).map((x) => `<span class="spec ${x.id === s.id ? 'on' : ''}" data-a="spec" data-s="${x.id}">${esc(x.name)} ¥${yuan(x.price)}</span>`).join('')}</div><div class="muted small" style="margin-top:6px">整件 ¥${yuan(p.price)} 共 ${p.packCount}${esc(p.singleUnit)}，可拆开按单${esc(p.singleUnit)}购买</div></div>` : ''}
+      <div class="blk"><div class="lbl">商品详情</div><div class="detail">${esc(p.desc)}</div>${p.detail ? `<div class="detail">${esc(p.detail)}</div>` : ''}${/备注/.test(p.name) ? '<div class="detail warn">该商品需要备注口味，请在结算页「订单备注」中填写</div>' : ''}</div>
+      <div class="sfoot">
+        <span class="muted small">${s.id === 'single' ? `可售 ${singleAvailable(p)} ${esc(p.singleUnit)}` : `库存 ${p.stock}`}</span>
+        ${out ? '<span class="muted">已售罄</span>' : n > 0 ? stepper(n, `data-id="${p.id}" data-spec="${s.id}"`) : `<button class="btn" style="width:150px" data-a="qty" data-d="1" data-id="${p.id}" data-spec="${s.id}">加入购物车</button>`}
+      </div>
+    </div></div>`
+  } else if (modal.type === 'pay') {
+    L.innerHTML = `
+    <div class="mask"><div class="sheet pay-sheet">
+      <div class="h"><span class="x2" data-a="payCancel">✕</span>微信支付<span class="badge">模拟</span></div>
+      <div style="margin-top:20px">${STORE.name}</div>
+      <div class="muted small">${esc(modal.desc)}</div>
+      <div class="amt">¥${money(modal.amount)}</div>
+      <div class="r"><span class="muted">付款方式</span><span>零钱（模拟）</span></div>
+      <button class="ok" data-a="payOk">确认支付</button>
+      <div class="muted small" style="margin-top:10px">演示版：不会产生真实扣款</div>
+    </div></div>`
+  } else if (modal.type === 'dialog') {
+    L.innerHTML = `
+    <div class="mask center"><div class="dialog">
+      <div class="dt">${esc(modal.title)}</div>
+      <div class="dc">${esc(modal.content || '')}${modal.input ? `<input id="dlg-input" placeholder="${esc(modal.input)}" />` : ''}</div>
+      <div class="db"><div data-a="dlgCancel">取消</div><div data-a="dlgOk">${esc(modal.okText || '确定')}</div></div>
+    </div></div>`
+  } else if (modal.type === 'action') {
+    L.innerHTML = `<div class="mask" data-a="closeModal"><div class="action">${modal.items.map((t, i) => `<div data-a="actionPick" data-i="${i}">${esc(t)}</div>`).join('')}<div class="cancel" data-a="closeModal">取消</div></div></div>`
+  }
+}
+function mockWechatPay(amount, desc, onOk, onCancel) {
+  modal = { type: 'pay', amount, desc, onOk, onCancel }
+  renderLayer()
+}
+function confirmDialog(title, content, onOk, opts = {}) {
+  modal = { type: 'dialog', title, content, onOk, ...opts }
+  renderLayer()
+  if (opts.input) setTimeout(() => document.getElementById('dlg-input')?.focus())
+}
+let toastTimer
+function toast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.classList.add('show')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800)
+}
+
+// ======================= 渲染 =======================
+function render(navigated) {
+  const r = cur()
+  const isTab = TABS.some((t) => t.name === r.name)
+  const phone = document.getElementById('phone')
+  const view = document.getElementById('view')
+  const y = window.scrollY
+  phone.classList.toggle('has-tab', isTab)
+  const nav = isTab ? '' : `<div class="nav"><span class="back" data-a="back">‹</span>${TITLES[r.name] || ''}</div>`
+  view.innerHTML = nav + PAGES[r.name](r)
+  const tb = document.getElementById('tabbar')
+  tb.style.display = isTab ? 'flex' : 'none'
+  const n = cartCount()
+  tb.innerHTML = TABS.map((t) => `<div class="t ${t.name === r.name ? 'on' : ''}" data-a="tab" data-to="${t.name}"><img src="assets/tab/${t.icon}${t.name === r.name ? '-active' : ''}.png" alt="" />${t.text}${t.name === 'cart' && n ? `<span class="badge">${n > 99 ? '99+' : n}</span>` : ''}</div>`).join('')
+  window.scrollTo(0, navigated ? 0 : y)
+  renderLayer()
+  document.title = `${STORE.name} · ${isTab ? TABS.find((t) => t.name === r.name).text : TITLES[r.name] || ''}`
+}
+
+// ======================= 交互 =======================
+const val = (id) => (document.getElementById(id) || {}).value || ''
+const fen = (v) => Math.round(parseFloat(v) * 100)
+const A = {
+  noop() {},
+  back,
+  tab: (d) => tab(d.to),
+  go: (d) => go(d.to, { id: d.id, select: d.select === '1' }),
+  toMenu: (d) => { if (d.cat) ui.menuCat = d.cat; tab('menu') },
+  cat: (d) => { ui.menuCat = d.id; render(true) },
+  sheet: (d) => { modal = { type: 'sheet', id: d.id, spec: 'whole' }; renderLayer() },
+  spec: (d) => { modal.spec = d.s; renderLayer() },
+  closeModal: () => { modal = null; renderLayer() },
+  qty: (d) => addToCart(d.id, d.spec, Number(d.d)),
+  check: (d) => { const c = db.cart.find((x) => x.key === d.key); c.checked = !c.checked; save(); render() },
+  checkAll: () => { const all = db.cart.every((c) => c.checked); db.cart.forEach((c) => (c.checked = !all)); save(); render() },
+  cartEdit: () => { ui.cartEdit = !ui.cartEdit; render() },
+  removeChecked: () => {
+    const n = db.cart.filter((c) => c.checked).length
+    if (!n) return toast('请选择商品')
+    confirmDialog('提示', `确定删除选中的 ${n} 件商品？`, () => { db.cart = db.cart.filter((c) => !c.checked); ui.cartEdit = false; save(); render() })
+  },
+  checkout: () => {
+    if (!cartLines(true).length) return toast('请在购物车勾选商品')
+    const short = shortOfMin()
+    if (short > 0) return toast(`还差 ¥${yuan(short)} 起送`)
+    ui.payMethod = ''
+    go('checkout')
+  },
+  method: (d) => { ui.payMethod = d.m; render() },
+  submitOrder: () => {
+    const lines = cartLines(true)
+    let pr
+    try { pr = priceOrder(lines) } catch (e) { return toast(e.message) }
+    if (pr.shortOfMin > 0) return toast(`还差 ¥${yuan(pr.shortOfMin)} 起送`)
+    const addr = db.addresses.find((a) => a.id === ui.addressId) || db.addresses.find((a) => a.isDefault) || db.addresses[0]
+    if (!addr) return toast('请添加收货地址')
+    const remark = ui.remark.trim()
+    if (lines.some((l) => /备注/.test(l.name)) && !remark) return toast('请在订单备注里写明口味')
+    if (ui.payMethod === 'balance' && db.user.balance < pr.payAmount) return toast('余额不足，请充值或选择微信支付')
+    const now = Date.now()
+    const o = {
+      id: uid('o'), orderNo: orderNo(), items: pr.lines, goodsAmount: pr.goodsAmount, discount: pr.discount, deliveryFee: pr.deliveryFee, payAmount: pr.payAmount,
+      address: { name: addr.name, phone: addr.phone, region: addr.region, detail: addr.detail }, remark: remark.slice(0, 100),
+      status: 'unpaid', payMethod: null, merchantSeen: false, timeline: [{ status: 'unpaid', at: now }], createdAt: now, updatedAt: now
+    }
+    db.orders.push(o)
+    const keys = new Set(lines.map((l) => l.key))
+    db.cart = db.cart.filter((c) => !keys.has(c.key))
+    ui.remark = ''
+    save()
+    payOrder(o, ui.payMethod, (paid) => { stack.pop(); go('order', { id: o.id, paid }) })
+  },
+  payExisting: (d) => {
+    const o = db.orders.find((x) => x.id === d.id)
+    const enough = db.user.balance >= o.payAmount
+    modal = {
+      type: 'action',
+      items: [enough ? `会员余额支付（余额 ¥${money(db.user.balance)}）` : '会员余额不足，去充值', '微信支付（模拟）'],
+      onPick: (i) => {
+        if (i === 0 && !enough) return go('vip')
+        payOrder(o, i === 0 ? 'balance' : 'wechat', (paid) => { if (cur().name === 'order') cur().paid = paid; render() })
+      }
+    }
+    renderLayer()
+  },
+  actionPick: (d) => { const m = modal; modal = null; renderLayer(); m.onPick(Number(d.i)) },
+  payOk: () => { const m = modal; modal = null; renderLayer(); m.onOk() },
+  payCancel: () => { const m = modal; modal = null; renderLayer(); toast('已取消支付'); m.onCancel && m.onCancel() },
+  dlgCancel: () => { modal = null; renderLayer() },
+  dlgOk: () => { const m = modal; const v = val('dlg-input'); modal = null; renderLayer(); m.onOk(v) },
+  cancelOrder: (d) => confirmDialog('取消订单', '确定取消该订单吗？', () => { setStatus(db.orders.find((x) => x.id === d.id), 'cancelled'); save(); render() }),
+  again: (d) => {
+    const o = db.orders.find((x) => x.id === d.id)
+    let skipped = 0
+    for (const l of o.items) {
+      const p = product(l.productId)
+      if (!p || !p.onSale || !specOf(p, l.spec)) { skipped++; continue }
+      const key = l.productId + ':' + l.spec
+      const c = db.cart.find((x) => x.key === key)
+      if (c) c.qty += l.qty
+      else db.cart.push({ key, productId: l.productId, spec: l.spec, qty: l.qty, checked: true })
+    }
+    save()
+    if (skipped) toast(`${skipped} 件商品已下架`)
+    tab('cart')
+  },
+  copy: (d) => { navigator.clipboard?.writeText(d.text).catch(() => {}); toast('订单号已复制') },
+  orderTab: (d) => { ui.orderTab = d.k; render(true) },
+  pickAddr: (d, el, e) => { if (e.target.closest('[data-a]') !== el) return; ui.addressId = d.id; back() },
+  defaultAddr: (d) => { db.addresses.forEach((a) => (a.isDefault = a.id === d.id)); save(); render() },
+  delAddr: (d) => confirmDialog('删除地址', '确定删除该收货地址吗？', () => {
+    const i = db.addresses.findIndex((a) => a.id === d.id)
+    const [rm] = db.addresses.splice(i, 1)
+    if (rm.isDefault && db.addresses[0]) db.addresses[0].isDefault = true
+    if (ui.addressId === d.id) ui.addressId = ''
+    save(); render()
+  }),
+  addrTag: (d) => { ui.draft.tag = ui.draft.tag === d.t ? '' : d.t; keepInputs(() => render()) },
+  addrDefault: () => { ui.draft.isDefault = !ui.draft.isDefault; keepInputs(() => render()) },
+  saveAddr: (d) => {
+    const a = { name: val('a-name').trim(), phone: val('a-phone').trim(), region: val('a-region').trim(), detail: val('a-detail').trim(), tag: ui.draft.tag || '' }
+    if (!a.name) return toast('请填写收货人')
+    if (!/^1\d{10}$/.test(a.phone)) return toast('请填写正确的 11 位手机号')
+    if (!a.detail) return toast('请填写详细地址')
+    let target = db.addresses.find((x) => x.id === d.id)
+    if (target) Object.assign(target, a)
+    else { target = { id: uid('a'), ...a, isDefault: false }; db.addresses.push(target) }
+    if (ui.draft.isDefault || db.addresses.length === 1) db.addresses.forEach((x) => (x.isDefault = x.id === target.id))
+    if (stack.some((s) => s.name === 'checkout')) ui.addressId = target.id
+    ui.draft = null
+    save()
+    toast('已保存')
+    back()
+  },
+  plan: (d) => { ui.plan = Number(d.i); render() },
+  recharge: () => {
+    const p = RECHARGE_PLANS[ui.plan]
+    mockWechatPay(p.amount, `会员卡充值 ¥${yuan(p.amount)}`, () => {
+      db.user.totalRecharge += p.amount
+      addBalanceLog(p.amount + p.bonus, p.bonus ? `充值 ¥${yuan(p.amount)}（赠 ¥${yuan(p.bonus)}）` : `充值 ¥${yuan(p.amount)}`)
+      save()
+      toast('充值成功')
+      render()
+    })
+  },
+  resetDemo: () => confirmDialog('重置演示数据', '会清空订单、地址、余额和购物车，商品恢复为初始菜单。', () => {
+    db = freshDb(); save(); Object.assign(ui, { addressId: '', remark: '', draft: null }); tab('home'); toast('已重置')
+  }),
+  // 商家端
+  mLogin: () => {
+    if (val('m-pwd') !== MERCHANT_PASSWORD) return toast('密码错误')
+    db.merchantLoggedIn = true
+    save()
+    replace('m-orders')
+  },
+  mLogout: () => { db.merchantLoggedIn = false; save(); stack = [{ name: 'mine' }, { name: 'm-login' }]; render(true) },
+  mTab: (d) => { ui.mTab = d.k; render(true) },
+  mNext: (d) => {
+    const o = db.orders.find((x) => x.id === d.id)
+    const text = NEXT_ACTION[o.status]
+    o.merchantSeen = true
+    setStatus(o, FLOW[FLOW.indexOf(o.status) + 1])
+    save(); toast(`已${text}`); render()
+  },
+  mSet: (d) => {
+    const o = db.orders.find((x) => x.id === d.id)
+    if (o.status === d.s) return
+    setStatus(o, d.s); save(); toast(`已改为「${STATUS[d.s].t}」`); render()
+  },
+  mRefund: (d) => {
+    const o = db.orders.find((x) => x.id === d.id)
+    confirmDialog('退款到会员余额', `将 ¥${money(o.payAmount)} 退回用户余额，并恢复库存`, (reason) => { refund(o, reason.trim()); toast('已退款'); render() }, { input: '退款原因（选填）', okText: '确认退款' })
+  },
+  mCat: (d) => { ui.mCat = d.k; render(true) },
+  mToggle: (d) => { const p = product(d.id); p.onSale = !p.onSale; save(); toast(p.onSale ? '已上架' : '已下架'); render() },
+  mDel: (d) => confirmDialog('删除商品', `确定删除「${product(d.id).name}」吗？`, () => { db.products = db.products.filter((p) => p.id !== d.id); save(); render() }),
+  draftToggle: (d) => { ui.draft[d.k] = !ui.draft[d.k]; keepInputs(() => render()) },
+  applyRule: () => {
+    const p = ruleSinglePrice(fen(val('p-price')), Number(val('p-pack')))
+    if (!p) return toast('请先填写售价和整件件数')
+    document.getElementById('p-single').value = (p / 100).toFixed(2)
+  },
+  saveProduct: (d) => {
+    const name = val('p-name').trim()
+    const price = fen(val('p-price'))
+    if (!name) return toast('请填写商品名称')
+    if (!(price > 0)) return toast('请填写正确的售价')
+    const orig = val('p-orig') ? fen(val('p-orig')) : null
+    const data = {
+      name, categoryId: val('p-cat'), price, originalPrice: orig && orig > price ? orig : null,
+      unit: val('p-unit').trim() || '份', stock: Math.max(0, parseInt(val('p-stock'), 10) || 0),
+      desc: val('p-desc').trim(), detail: val('p-detail').trim(), image: val('p-image').trim(), onSale: ui.draft.onSale,
+      packCount: 0, singlePrice: null, singleUnit: '包', looseStock: 0
+    }
+    if (ui.draft.split) {
+      const pack = parseInt(val('p-pack'), 10)
+      const single = fen(val('p-single'))
+      if (!(pack > 1)) return toast('整件件数至少为 2')
+      if (!(single > 0)) return toast('请填写单包价')
+      Object.assign(data, { packCount: pack, singlePrice: single, singleUnit: val('p-sunit').trim() || '包', looseStock: Math.max(0, parseInt(val('p-loose'), 10) || 0) })
+    }
+    const p = product(d.id)
+    if (p) Object.assign(p, data)
+    else db.products.unshift({ id: uid('p'), ...data, sales: 0 })
+    ui.draft = null
+    save()
+    toast('已保存')
+    back()
+  },
+  saveSettings: () => {
+    const v = parseFloat(val('s-min') || '0')
+    if (!(v >= 0)) return toast('请填写正确的金额')
+    db.settings.minOrderAmount = Math.round(v * 100)
+    save(); toast('已保存'); render()
+  }
+}
+
+// 重新渲染表单页时保留已输入的内容
+function keepInputs(fn) {
+  const vals = {}
+  document.querySelectorAll('#view input[id], #view textarea[id], #view select[id]').forEach((el) => { if (el.type !== 'file') vals[el.id] = el.value })
+  fn()
+  for (const [id, v] of Object.entries(vals)) { const el = document.getElementById(id); if (el) el.value = v }
+}
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-a]')
+  if (!el) return
+  if (el.tagName === 'A' && el.getAttribute('href')) return
+  const fn = A[el.dataset.a]
+  if (fn) fn(el.dataset, el, e)
+})
+document.addEventListener('input', (e) => {
+  const m = e.target.dataset && e.target.dataset.model
+  if (m) ui[m] = e.target.value
+})
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.id === 'm-pwd') A.mLogin()
+})
+// 商品图片：压缩到 480px 后以 dataURL 存进 localStorage
+document.addEventListener('change', (e) => {
+  if (e.target.id !== 'p-file' || !e.target.files[0]) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    const img = new Image()
+    img.onload = () => {
+      const s = Math.min(1, 480 / Math.max(img.width, img.height))
+      const c = document.createElement('canvas')
+      c.width = Math.round(img.width * s)
+      c.height = Math.round(img.height * s)
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
+      ui.draft.image = c.toDataURL('image/jpeg', 0.82)
+      keepInputs(() => render())
+      document.getElementById('p-image').value = ui.draft.image
+    }
+    img.src = reader.result
+  }
+  reader.readAsDataURL(e.target.files[0])
+})
+
+render(true)
+</script>
+</body>
+</html>
